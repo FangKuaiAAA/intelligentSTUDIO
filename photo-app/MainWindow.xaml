@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="PhotoEditor.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:PhotoEditor.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="照片编辑器">
+
+    <Grid x:Name="RootGrid" AllowDrop="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 环境色：左上偏紫、右下偏蓝，压低到几乎不可察觉，只为让 Mica 不那么平 -->
+        <Ellipse Grid.RowSpan="2" Width="760" Height="760"
+                 HorizontalAlignment="Left" VerticalAlignment="Top"
+                 Margin="-320,-360,0,0" IsHitTestVisible="False" Opacity="0.18">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#66BF5AF2" Offset="0" />
+                    <GradientStop Color="#00BF5AF2" Offset="1" />
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <Ellipse Grid.RowSpan="2" Width="680" Height="680"
+                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                 Margin="0,0,-260,-320" IsHitTestVisible="False" Opacity="0.14">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#550A84FF" Offset="0" />
+                    <GradientStop Color="#000A84FF" Offset="1" />
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <Grid x:Name="AppTitleBar" Grid.Row="0" Height="40" Margin="0,0,138,0">
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="16,0,0,0" VerticalAlignment="Center">
+                <Image x:Name="TitleIcon" Width="16" Height="16" VerticalAlignment="Center" />
+                <TextBlock Text="照片编辑器" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="160" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="252" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 左：五个工具 -->
+            <Border Grid.Column="0" Background="#08000000" BorderThickness="0,0,1,0" BorderBrush="#0FFFFFFF">
+                <Grid x:Name="RailHost">
+                    <!-- 选中高亮：一个覆盖层在项之间滑动，而不是每项各自切换背景 -->
+                    <Border x:Name="RailHighlight" Height="40" CornerRadius="8"
+                            Margin="8,0" Background="#22FFFFFF" VerticalAlignment="Top"
+                            HorizontalAlignment="Stretch"
+                            IsHitTestVisible="False" Opacity="0">
+                        <Border.RenderTransform>
+                            <TranslateTransform x:Name="RailHighlightShift" />
+                        </Border.RenderTransform>
+                        <Rectangle Width="3" Height="18" RadiusX="1.5" RadiusY="1.5"
+                                   Fill="{StaticResource AppAccentBlue}"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,0,0" />
+                    </Border>
+
+                    <StackPanel x:Name="Rail" Padding="0,12,0,0">
+                    <RadioButton x:Name="NavCrop" GroupName="Tools" Style="{StaticResource RailNavItemStyle}"
+                                 Checked="OnNavChecked" Tag="Crop" AutomationProperties.Name="裁剪">
+                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
+                            <Viewbox Width="19" Height="19" VerticalAlignment="Center">
+                                <Image Source="Assets/Icons/1.png" Stretch="Uniform" />
+                            </Viewbox>
+                            <TextBlock Text="裁剪" FontSize="13" VerticalAlignment="Center"
+                                       Foreground="{StaticResource AppTextSecondary}" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton x:Name="NavFilter" GroupName="Tools" Style="{StaticResource RailNavItemStyle}"
+                                 Checked="OnNavChecked" Tag="Filter" AutomationProperties.Name="滤镜">
+                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
+                            <Viewbox Width="19" Height="19" VerticalAlignment="Center">
+                                <Image Source="Assets/Icons/2.png" Stretch="Uniform" />
+                            </Viewbox>
+                            <TextBlock Text="滤镜" FontSize="13" VerticalAlignment="Center"
+                                       Foreground="{StaticResource AppTextSecondary}" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton x:Name="NavErase" GroupName="Tools" Style="{StaticResource RailNavItemStyle}"
+                                 Checked="OnNavChecked" Tag="Erase" AutomationProperties.Name="消除">
+                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
+                            <Viewbox Width="19" Height="19" VerticalAlignment="Center">
+                                <Image Source="Assets/Icons/3.png" Stretch="Uniform" />
+                            </Viewbox>
+                            <TextBlock Text="消除" FontSize="13" VerticalAlignment="Center"
+                                       Foreground="{StaticResource AppTextSecondary}" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton x:Name="NavExpand" GroupName="Tools" Style="{StaticResource RailNavItemStyle}"
+                                 Checked="OnNavChecked" Tag="Expand" AutomationProperties.Name="扩展">
+                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
+                            <Viewbox Width="19" Height="19" VerticalAlignment="Center">
+                                <Image Source="Assets/Icons/4.png" Stretch="Uniform" />
+                            </Viewbox>
+                            <TextBlock Text="扩展" FontSize="13" VerticalAlignment="Center"
+                                       Foreground="{StaticResource AppTextSecondary}" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton x:Name="NavReframe" GroupName="Tools" Style="{StaticResource RailNavItemStyle}"
+                                 Checked="OnNavChecked" Tag="Reframe" AutomationProperties.Name="重构">
+                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
+                            <Viewbox Width="19" Height="19" VerticalAlignment="Center">
+                                <Image Source="Assets/Icons/5.png" Stretch="Uniform" />
+                            </Viewbox>
+                            <TextBlock Text="重构" FontSize="13" VerticalAlignment="Center"
+                                       Foreground="{StaticResource AppTextSecondary}" />
+                        </StackPanel>
+                    </RadioButton>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- 中：画布 -->
+            <Grid x:Name="CanvasArea" Grid.Column="1" Background="{StaticResource AppCanvasFill}">
+                <controls:EditSurface x:Name="SurfaceView" />
+
+                <!-- 未导入：整窗磨砂。用系统 Acrylic 材质承载模糊观感，不额外绘制位图 -->
+                <Grid x:Name="EmptyState" Opacity="1">
+                    <Grid.Background>
+                        <AcrylicBrush TintColor="#16161A" TintOpacity="0.78" FallbackColor="#16161A" />
+                    </Grid.Background>
+
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="18">
+                        <Image Source="Assets/Logo.png" Width="64" Height="64"
+                               Stretch="Uniform" HorizontalAlignment="Center" />
+
+                        <Border CornerRadius="20" Background="#14FFFFFF" BorderThickness="1" BorderBrush="#22FFFFFF"
+                                Padding="34,30" MinWidth="300">
+                            <StackPanel Spacing="16">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="照片编辑器" FontSize="17" FontWeight="SemiBold"
+                                               HorizontalAlignment="Center"
+                                               Foreground="{StaticResource AppTextPrimary}" />
+                                    <TextBlock Text="打开照片开始编辑。" FontSize="12.5"
+                                               HorizontalAlignment="Center"
+                                               Foreground="{StaticResource AppTextSecondary}" />
+                                </StackPanel>
+
+                                <Button x:Name="OpenButton" Content="打开照片" Style="{StaticResource PillButtonStyle}"
+                                        HorizontalAlignment="Center" Click="OnOpenClicked" />
+
+                                <TextBlock Text="也可以把照片拖到窗口内。" FontSize="11.5"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource AppTextTertiary}" />
+
+                                <Button x:Name="ShellMenuButton"
+                                        Style="{StaticResource BareButtonStyle}"
+                                        HorizontalAlignment="Center" Click="OnShellMenuClicked">
+                                    <TextBlock x:Name="ShellMenuLabel" Text="添加到右键菜单" FontSize="11.5"
+                                               Foreground="{StaticResource AppTextTertiary}" />
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock x:Name="DropHint" Text="松开以打开" FontSize="12" Opacity="0"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{StaticResource AppTextSecondary}" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- 拖拽进窗口时的高亮描边 -->
+                <Border x:Name="DropFrame" CornerRadius="10" BorderThickness="1.5"
+                        BorderBrush="{StaticResource AppAccentBlue}" Opacity="0"
+                        Margin="14" IsHitTestVisible="False" />
+            </Grid>
+
+            <!-- 右：操作面板 -->
+            <Border Grid.Column="2" Background="#08000000" BorderThickness="1,0,0,0" BorderBrush="#0FFFFFFF">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Margin="20,18,16,10" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- 操作按钮独占一行，标题与说明文字统一排在按钮下方，
+                             避免标题被挤压后与按钮挤在同一行 -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="6"
+                                    HorizontalAlignment="Left">
+                            <Button x:Name="UndoButton" Padding="10,0"
+                                    Style="{StaticResource GlassPillButtonStyle}"
+                                    Click="OnUndoClicked" IsEnabled="False">
+                                <FontIcon Glyph="&#xE72B;" FontSize="13" />
+                            </Button>
+                            <Button x:Name="RedoButton" Padding="10,0"
+                                    Style="{StaticResource GlassPillButtonStyle}"
+                                    Click="OnRedoClicked" IsEnabled="False">
+                                <FontIcon Glyph="&#xE72A;" FontSize="13" />
+                            </Button>
+                            <Button x:Name="ExportButton" Content="导出"
+                                    Style="{StaticResource GlassPillButtonStyle}"
+                                    Click="OnExportClicked" IsEnabled="False" />
+                        </StackPanel>
+
+                        <TextBlock x:Name="PanelTitle" Grid.Row="1" Text="裁剪"
+                                   Style="{StaticResource PanelTitleStyle}" />
+                        <TextBlock x:Name="PanelSubtitle" Grid.Row="2" Text=""
+                                   Style="{StaticResource TertiaryTextStyle}"
+                                   TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                    </Grid>
+
+                    <ContentControl x:Name="PanelHost" Grid.Row="1"
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch">
+                        <ContentControl.RenderTransform>
+                            <TranslateTransform x:Name="PanelShift" X="0" />
+                        </ContentControl.RenderTransform>
+                    </ContentControl>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- 一次性提示：导出结果、错误信息 -->
+        <InfoBar x:Name="Toast" Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Center"
+                 Margin="0,12,0,0" IsOpen="False" IsClosable="False" MaxWidth="460" />
+    </Grid>
+</Window>

@@ -1,0 +1,22 @@
+{
+  "MCP_SERVERS": [],
+  "NOTIFY_SUMMARY_ENABLED": true,
+  "SMART_DND_ENABLED": true,
+  "OPENAI_API_BASE": "",
+  "OPENAI_API_KEY": "",
+  "OPENAI_MODEL": "",
+  "OPENAI_VISION_MODEL": null,
+  "IMAGE_API_BASE": "",
+  "IMAGE_API_KEY": "",
+  "IMAGE_MODEL": "z_image_turbo_1.0_q6p.ckpt",
+  "IMAGE_PROVIDER": "auto",
+  "NOTIFY_SUMMARY_THRESHOLD": 3,
+  "OPENAI_VISION_API_BASE": null,
+  "OPENAI_VISION_API_KEY": null,
+  "EDIT_API_BASE": "",
+  "EDIT_API_KEY": "",
+  "EDIT_MODEL": "",
+  "EDIT_PROVIDER": "auto",
+  "WRITING_DOUBLE_CTRL": true,
+  "ONBOARDING_COMPLETED": false
+}

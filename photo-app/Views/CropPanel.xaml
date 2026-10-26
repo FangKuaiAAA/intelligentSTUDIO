@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="PhotoEditor.Views.CropPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Padding="20,4,18,24" Spacing="22">
+
+            <StackPanel Spacing="10">
+                <TextBlock Text="比例" Style="{StaticResource SectionTitleStyle}" />
+                <Grid ColumnSpacing="6" RowSpacing="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <RadioButton GroupName="RatioGroup" x:Name="RatioOriginal" Grid.Row="0" Grid.Column="0" Content="原始"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnRatioClicked" Tag="0" />
+                    <RadioButton GroupName="RatioGroup" x:Name="Ratio1x1" Grid.Row="0" Grid.Column="1" Content="1:1"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnRatioClicked" Tag="1" />
+                    <RadioButton GroupName="RatioGroup" x:Name="Ratio4x3" Grid.Row="0" Grid.Column="2" Content="4:3"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnRatioClicked" Tag="1.3333" />
+
+                    <RadioButton GroupName="RatioGroup" x:Name="Ratio3x4" Grid.Row="1" Grid.Column="0" Content="3:4"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnRatioClicked" Tag="0.75" />
+                    <RadioButton GroupName="RatioGroup" x:Name="Ratio16x9" Grid.Row="1" Grid.Column="1" Content="16:9"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnRatioClicked" Tag="1.7778" />
+                    <RadioButton GroupName="RatioGroup" x:Name="Ratio9x16" Grid.Row="1" Grid.Column="2" Content="9:16"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnRatioClicked" Tag="0.5625" />
+
+                    <RadioButton GroupName="RatioGroup" x:Name="Ratio3x2" Grid.Row="2" Grid.Column="0" Content="3:2"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnRatioClicked" Tag="1.5" />
+                    <RadioButton GroupName="RatioGroup" x:Name="Ratio2x3" Grid.Row="2" Grid.Column="1" Content="2:3"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnRatioClicked" Tag="0.6667" />
+                    <RadioButton GroupName="RatioGroup" x:Name="RatioFree" Grid.Row="2" Grid.Column="2" Content="自由"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnRatioClicked" Tag="" />
+                </Grid>
+            </StackPanel>
+
+            <StackPanel Spacing="10">
+                <TextBlock Text="旋转" Style="{StaticResource SectionTitleStyle}" />
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Button Content="左转 90°" Style="{StaticResource GlassPillButtonStyle}"
+                            Padding="12,0" Click="OnRotateLeft" />
+                    <Button Content="右转 90°" Style="{StaticResource GlassPillButtonStyle}"
+                            Padding="12,0" Click="OnRotateRight" />
+                    <Button Content="镜像" Style="{StaticResource GlassPillButtonStyle}"
+                            Padding="12,0" Click="OnFlip" />
+                </StackPanel>
+
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+                <TextBlock Text="裁剪框" Style="{StaticResource SectionTitleStyle}" />
+                <TextBlock Text="拖动四角调整，框内可整体移动。"
+                           Style="{StaticResource TertiaryTextStyle}" />
+                <TextBlock x:Name="ResetHint" Style="{StaticResource TertiaryTextStyle}"
+                           Visibility="Collapsed"
+                           Text="再次裁剪会重置滤镜及其后的编辑。" />
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+                <Button x:Name="ApplyButton" Content="应用裁剪" Style="{StaticResource PillButtonStyle}"
+                        HorizontalAlignment="Stretch" Click="OnApply" />
+                <Button Content="重置" Style="{StaticResource GlassPillButtonStyle}"
+                        HorizontalAlignment="Stretch" Click="OnReset" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

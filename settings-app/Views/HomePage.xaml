@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="DonySettings.Views.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer Padding="24,16,24,24">
+        <StackPanel Spacing="12" Width="420" HorizontalAlignment="Left">
+
+            <!-- 软件介绍 -->
+            <Border Style="{StaticResource DonyCardStyle}" Padding="20">
+                <StackPanel Spacing="10">
+                    <Image Source="ms-appx:///intelligentSTUDIO.png" Width="64" Height="64"
+                           HorizontalAlignment="Left" />
+                    <TextBlock Text="intelligentSTUDIO" FontSize="22" FontWeight="SemiBold"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <!-- 智能开关 -->
+            <Border Style="{StaticResource DonyCardStyle}" Padding="20">
+                <StackPanel Spacing="12">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="通知智能" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                                       Text="开启后，同一应用的通知合并为一条摘要，并写入通知中心；不受专注模式影响。" />
+                        </StackPanel>
+                        <ToggleSwitch x:Name="SummaryToggle" Grid.Column="1"
+                                      Toggled="Summary_Toggled" />
+                    </Grid>
+
+                    <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="智能勿扰模式" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                                       Text="开启后，重要通知以卡片提醒，其余通知不弹出提醒。需与系统专注模式同时开启。" />
+                        </StackPanel>
+                        <ToggleSwitch x:Name="DndToggle" Grid.Column="1"
+                                      Toggled="Dnd_Toggled" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

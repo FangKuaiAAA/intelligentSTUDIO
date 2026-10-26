@@ -1,0 +1,105 @@
+.voice-response-wrapper {
+  width: 100%;
+}
+
+.voice-response-box {
+  position: relative;
+  border-radius: 14px;
+  /* 与键入模式的结果框同步收小（语音模式） */
+  padding: 10px 12px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+/* ===== 追问过渡那张"上飞的旧返回卡"（App.tsx 的 .card-responding）=====
+   照键入模式的做法：**这里自己一律不滚**（键入的 .response-box 就是 overflow:visible）。
+   原因：这张卡在它自己的上飞/形变期间没有任何滚动条抑制，
+   而裸的 overflow-y:auto 只要有一帧"内容比盒子高"就立刻画出 6px 条
+   （用户实测："语音模式下还会在卡片展开时显示滚动条"）。
+   保留 55vh 上限不动（卡片尺寸/形变不受影响），只关掉内部滚动：
+   它本来就是"上飞离场"的过渡态，全文此刻已在结果框里可读，不需要在它身上滚。
+
+   ⚠ 另一处（结果框里的语音返回卡）**无需处理**：App.css 里已有
+     `.dony-result-scroll > .voice-response-wrapper > .voice-response-box{overflow-y:visible}`
+     + `.dony-stage-result:not(.is-settled)` 的"滚动条宽度压到 0"那一套（照搬键入的原始实现）。
+   ⚠ 不要动 .is-settled / resultSettled 的判定 —— 语音下"继续卡片必须在返回卡完全展开后显示"依赖它。 */
+.card-responding .voice-response-box {
+  overflow-y: hidden;
+}
+
+.voice-response-box::-webkit-scrollbar { width: 6px }
+.voice-response-box::-webkit-scrollbar-track { background: transparent }
+.voice-response-box::-webkit-scrollbar-thumb { background: var(--dony-scroll-thumb); border-radius: 3px }
+
+.voice-response-content {
+  position: relative;
+  z-index: 1;
+  color: var(--dony-ink);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.voice-response-para {
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  will-change: transform, opacity, filter;
+}
+
+.voice-response-para:last-child {
+  margin-bottom: 0;
+}
+
+.voice-response-placeholder {
+  color: var(--dony-ink-faint);
+  font-style: italic;
+}
+
+.voice-streaming-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 18px;
+  background: linear-gradient(180deg, #C44DFF, #4D8AFF);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  border-radius: 1px;
+  animation: voiceBlink 0.6s ease-in-out infinite;
+}
+
+@keyframes voiceBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.voice-response-morph {
+  /* 与键入模式的结果框同步收小（语音模式在 DonyMorph 里那一份） */
+  padding: 10px 12px;
+  /* 结果框里：上限与滚动交给外层 .dony-result-scroll（见 App.css），
+     这里自己再滚就会出现双层滚动 */
+  max-height: none;
+  min-height: 0;
+  flex: 0 0 auto;
+  overflow-y: visible;
+}
+
+.voice-response-stream {
+  position: relative;
+  z-index: 1;
+  color: var(--dony-ink);
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 逐行飞入的行（与结果框的 .response-para 同一观感） */
+.voice-response-line {
+  margin: 0 0 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  will-change: transform, opacity, filter;
+}
+
+.voice-response-line:last-child {
+  margin-bottom: 0;
+}

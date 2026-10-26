@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="DonySettings.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="STUDIO设置">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- 0：自绘标题栏（见 MainWindow.xaml.cs 的 SetupCustomTitleBar） -->
+            <RowDefinition Height="Auto" />
+            <!-- 1：内容 -->
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="AppTitleBar" Grid.Row="0" Height="40" Margin="0,0,138,0">
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="16,0,0,0"
+                        VerticalAlignment="Center">
+                <FontIcon Glyph="&#xE713;" FontSize="14"
+                          Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <TextBlock Text="STUDIO设置" FontSize="13" FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+        <controls:NavigationView x:Name="Nav" Grid.Row="1" PaneDisplayMode="Left"
+                                 IsBackButtonVisible="Collapsed" IsSettingsVisible="False"
+                                 OpenPaneLength="220" SelectionChanged="Nav_SelectionChanged">
+            <controls:NavigationView.MenuItems>
+                <controls:NavigationViewItem Content="主页" Tag="home">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE80F;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
+                <controls:NavigationViewItem Content="模型" Tag="models">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9A9;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
+                <controls:NavigationViewItem Content="Dony MCP 与 Skill" Tag="mcp-skill">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xEA86;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
+                <controls:NavigationViewItem Content="书写辅助" Tag="writing-assist">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE70F;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
+                <controls:NavigationViewItem Content="通知智能和勿扰" Tag="notifications">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xEA8F;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
+                <controls:NavigationViewItem Content="通用" Tag="general">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE713;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
+            </controls:NavigationView.MenuItems>
+
+            <!-- 关于固定在导航底部 -->
+            <controls:NavigationView.FooterMenuItems>
+                <controls:NavigationViewItem Content="关于" Tag="about">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE946;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
+            </controls:NavigationView.FooterMenuItems>
+
+            <Frame x:Name="ContentFrame" />
+        </controls:NavigationView>
+    </Grid>
+</Window>

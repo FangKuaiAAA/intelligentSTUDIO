@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="PhotoEditor.Controls.EditSurface"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PhotoEditor.Controls">
+
+    <Grid x:Name="Root" Background="Transparent">
+        <Canvas x:Name="Stage" IsHitTestVisible="False">
+            <Image x:Name="Photo" Stretch="Fill" RenderTransformOrigin="0,0">
+                <Image.RenderTransform>
+                    <CompositeTransform x:Name="PhotoTransform" />
+                </Image.RenderTransform>
+            </Image>
+
+            <!-- 与照片同坐标系（图像像素）的遮罩图层：轮廓彩虹、光边叠加 -->
+            <Canvas x:Name="MaskLayer" IsHitTestVisible="False" RenderTransformOrigin="0,0">
+                <Canvas.RenderTransform>
+                    <CompositeTransform x:Name="MaskTransform" />
+                </Canvas.RenderTransform>
+            </Canvas>
+        </Canvas>
+
+        <!-- 页面自绘层：裁剪框、笔迹、轮廓光环。坐标与控件一致。 -->
+        <Canvas x:Name="Overlay" IsHitTestVisible="False" />
+
+        <Grid x:Name="BusyLayer" Background="#8C000000" Opacity="0" Visibility="Collapsed"
+              IsHitTestVisible="True">
+            <local:RainbowProgressBar x:Name="Progress" VerticalAlignment="Center" HorizontalAlignment="Center" />
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>Dony</title>
+<style>
+  /* WinUI 风格托盘菜单：圆角、半透明底、细边框、悬停高亮，菜单内不放图标。
+     颜色跟随系统深浅（Electron 的 prefers-color-scheme 跟随 nativeTheme）。 */
+  :root {
+    --surface: rgba(249, 249, 249, 0.94);
+    --border: rgba(0, 0, 0, 0.08);
+    --text: #1b1b1b;
+    --hover: rgba(0, 0, 0, 0.05);
+    --pressed: rgba(0, 0, 0, 0.08);
+    --separator: rgba(0, 0, 0, 0.09);
+    /* 阴影向右下偏移 4px、模糊 14px ⇒ 最多外扩 18px。
+       窗口四周正好留 18px 透明边（见 #menu 的 inset），阴影不会被窗口边界裁掉。 */
+    --shadow: 0 4px 14px rgba(0, 0, 0, 0.22), 0 1px 4px rgba(0, 0, 0, 0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: rgba(44, 44, 44, 0.94);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f3f3f3;
+      --hover: rgba(255, 255, 255, 0.07);
+      --pressed: rgba(255, 255, 255, 0.1);
+      --separator: rgba(255, 255, 255, 0.09);
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.45), 0 1px 4px rgba(0, 0, 0, 0.25);
+    }
+  }
+  html, body {
+    margin: 0; height: 100%; background: transparent; overflow: hidden;
+    user-select: none; cursor: default;
+    font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    font-size: 13px; color: var(--text);
+  }
+  /* 外层留 18px：给 CSS 阴影留出绘制空间（透明窗口里超出窗口的阴影会被裁掉） */
+  #menu {
+    position: absolute; inset: 18px;
+    display: flex; flex-direction: column;
+    padding: 6px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    opacity: 0;
+  }
+  /* 只做透明度淡入：透明窗口上任何 transform（位移/缩放）都会让整帧重绘时位移，
+     按下鼠标触发激活重绘时就会被看成"跳一下"，这里一律不用。 */
+  #menu.show { animation: menuIn 0.12s ease-out forwards; }
+  @keyframes menuIn { from { opacity: 0; } to { opacity: 1; } }
+  .item {
+    appearance: none; border: 0; background: transparent; color: inherit;
+    font: inherit; height: 34px; padding: 0 12px; border-radius: 4px;
+    text-align: left; cursor: default;
+    display: flex; align-items: center; width: 100%;
+  }
+  .item:hover, .item:focus-visible { background: var(--hover); outline: none; }
+  .item:active { background: var(--pressed); }
+  .sep { height: 1px; background: var(--separator); margin: 6px 10px; }
+  /* 右键菜单多出来的「退出STUDIO」：默认隐藏，.item 的 display:flex 会盖掉 UA 的 [hidden] 规则 */
+  [hidden] { display: none !important; }
+</style>
+  <script type="module" crossorigin src="./assets/tray-QCMrA9Sy.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/modulepreload-polyfill-B5Qt9EMX.js">
+</head>
+<body>
+  <div id="menu" role="menu" aria-label="Dony">
+    <button class="item" role="menuitem" data-cmd="wake">键入使用Dony</button>
+    <button class="item" role="menuitem" data-cmd="voice">说话使用Dony</button>
+    <div class="sep" role="separator"></div>
+    <button class="item" role="menuitem" data-cmd="visual">启动视觉智能</button>
+    <!-- 右键才显示：退出整个 STUDIO -->
+    <div class="sep" id="quit-sep" role="separator" hidden></div>
+    <button class="item" role="menuitem" data-cmd="quit" id="quit-item" hidden>退出STUDIO</button>
+  </div>
+</body>
+</html>

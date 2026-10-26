@@ -1,0 +1,194 @@
+/* DonyMorph 完整形变卡片：一个实体在 药丸/彩虹药丸/加载球/伸长药丸/方窗/结果框 之间连续形变 */
+
+.dony-morph-anchor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* 锚定顶部中心：形变扩大时向下生长（“药丸向下运动并扩大为结果框”） */
+}
+
+/* ===== 首唤醒：输入框从屏幕底部飞入的「上移」=====
+   为什么这一段不用 framer-motion（和其它形变一样）来插值：
+   唤醒后最初 0.6s 主线程是满的（挂载整棵树 + 光斑画布 + 亚克力首帧光栅化），
+   实测每帧预算 6ms（165Hz 屏）却有 9 帧超支、最长 176ms（145~176ms 各一次）。
+   而"上移"恰好是这一段里速度最快的部分 —— 主线程插值会让药丸在一帧内直接跨过
+   200~250px，观感就是"它没从底部升起来，而是直接出现在上半屏"（实测 y: 693 → 507 → 259 → 69）。
+   交给 CSS 动画后，transform 由**合成器线程**独立插值：主线程再卡，位置依旧以刷新率平滑推进
+   （卡顿只会表现为"尺寸长得一顿一顿"，比位置瞬移好得多）。
+   时长必须与 DonyMorph.tsx 的 ENTER_SECONDS 保持一致；
+   缓动是幂曲线（powerOut ≈ 1-(1-t)^2.2）的等价的 cubic-bezier：先快、末尾减速缓冲。 */
+@keyframes donyEnterRise {
+  from { transform: translateY(var(--dony-enter-from, 0px)); }
+  to { transform: translateY(0); }
+}
+.dony-morph-anchor.is-entering {
+  /* 0.25s：用户要求"首次飞入再快 1.8 倍"（原 0.45s）。
+     必须与 DonyMorph.tsx 的 ENTER_SECONDS 一致。 */
+  animation: donyEnterRise 0.25s cubic-bezier(0.33, 1, 0.68, 1) both;
+  will-change: transform;
+}
+
+.dony-morph-card {
+  position: relative;
+  z-index: 1;
+  /* 材质不在这里画：交给卡片内部的 .dony-acrylic 亚克力层
+     （桌面快照 + 模糊 + 色调 + 排他混合 + 噪点，见 acrylic.css）。
+     原因：亚克力在 Windows 上是 DWM 的**窗口级**材质，模糊的是窗口背后的桌面，
+     而透明窗口里的 backdrop-filter 只能取到窗口内已绘制的画面 —— 所以必须在
+     卡片自己内部放一层桌面快照，再用 blur 去糊它，才看得见"桌面被磨砂"。 */
+  background: transparent;
+  /* 只留外阴影。极细浅灰描边不画在这里 —— 亚克力层（负 z-index）会把它整条盖住，
+     所以描边由 .dony-acrylic 自己画（见 acrylic.css）。 */
+  box-shadow: var(--dony-acrylic-shadow);
+  overflow: hidden;
+  will-change: width, height, border-radius, transform;
+}
+
+/* 彩虹底层贴合卡片：位于卡片之下（z0） */
+.dony-morph-anchor .rainbow-glow-wrap {
+  border-radius: inherit;
+}
+
+.dony-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dony-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dony-input-measure {
+  width: fit-content;
+  height: fit-content;
+}
+
+.dony-processing-text {
+  font-size: 15px;        /* 药丸 159×36，文字同步放大 */
+  font-weight: 300;       /* 处理态是「等待」：细一点的灰字，不与结果正文抢注意力 */
+  letter-spacing: 1.5px;
+  color: var(--dony-ink-dim);
+  white-space: nowrap;
+}
+
+/* 任务模式：六边形中心点必须与卡片左侧圆角圆心重合。
+   球的左端是直径 64 的半圆（圆心在 32,32），所以六边形的框就取 (0,0) 起的 64×64，
+   这样无论卡片怎么被拉长，圆心与六边形中心都一直对齐。
+   （注意：App.css 里有全局 .hexagon-svg{width:64px;height:64px}，
+    组件上传的 size 会被它覆盖，所以这里按 64 来定位，避免错位。） */
+.dony-task-hex {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 工具名：不用 CSS transform 做垂直居中（framer-motion 要自己写 transform，
+   两者会互相覆盖导致文字跳动），改用 flex 居中 + 内层文字负责省略号。 */
+.dony-tool-label {
+  position: absolute;
+  left: 64px;
+  right: 22px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  will-change: transform, opacity, filter;
+}
+
+.dony-tool-label-text {
+  max-width: 100%;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--dony-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 量工具名实际占多宽（决定药丸要不要拉长）：不占布局、不可见 */
+.dony-tool-label-measure {
+  position: absolute;
+  left: 0;
+  top: -200px;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* 结果框：最大就到正方形（宽 580 → 高 580）；内容更少时高度随内容减小。
+   到顶后内容改为框内滚动。82vh 是兜底，避免小屏上跑出屏幕外。 */
+.dony-stage-result {
+  display: flex;
+  flex-direction: column;
+  max-height: min(500px, 82vh);
+}
+
+/* 结果内容：正常文档流撑开卡片（height auto）。
+   宽度由 JS 给定为结果框的最终宽度（见 RESULT_WIDTH）：不能写成 100%，
+   否则卡片放大过程中文字会反复重排，高度被量错 → 先暴涨再闪回。 */
+.dony-result-content {
+  position: relative;
+  inset: auto;
+  display: flex;
+  flex-direction: column;
+  /* ⚠ 不要参与压缩：卡片高度是 JS 交给动画的固定值，若这里写 flex:1 1 auto，
+     内容会被压成"卡片当前高度"——刚起步时只有一行高，于是量高度永远量到一行
+     （表现就是"文字很多但显示区只有一行、还得滚动"）。
+
+     这里用 height:100% 填满卡片（不是被压缩）：内部的 .dony-result-scroll 因此
+     拿到确定高度，超出才能真的滚起来；而测量用的是 scrollHeight，
+     不受 height 限制，拿到的仍是完整内容高度。
+
+     另外这里要再裁一次圆角：卡片的 overflow:hidden 圆角裁剪在带 transform
+     （framer-motion 的 y）时是失效的，不加的话飞入中的文字会在圆角处漏到卡片外。
+     用 clip-path 就不吃这个亏（卡片的阴影也不受影响）。 */
+  height: 100%;
+  flex: 0 0 auto;
+  clip-path: inset(0 round var(--dony-radius, 28px));
+  -webkit-clip-path: inset(0 round var(--dony-radius, 28px));
+}
+
+/* input 阶段卡片透明底（药丸自身已有白色面） */
+.dony-stage-input {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  /* 静止时放行：药丸自己的投影要能落在卡片外，别被裁掉 */
+  overflow: visible;
+}
+
+/* 首唤醒飞入期间必须裁住内容：
+   卡片此刻还很小（104×30），而里面的药丸是**按最终尺寸**排版的（fit-content）。
+   不裁的话会看到一颗完整的药丸浮在一个正在长大的小方块外面，"放大"的错觉就没了。
+   裁住之后 = 药丸始终居中、只露出中间一小块，随卡片长大把左侧图标和文字逐步"绽开"出来。
+   飞入一结束就恢复 visible（此时卡片恰好等于药丸大小，裁不裁都一样）。 */
+.dony-stage-input.is-entering {
+  overflow: hidden;
+  /* 同上那条 Chromium 限制：带 transform 时 overflow+border-radius 的圆角裁剪会失效
+     （会露出直角）。这里用 clip-path 补圆角；输入态卡片自己没有投影（box-shadow:none），
+     所以裁它不会有副作用。round 999px 对任意中间尺寸都等价于"胶囊"，正好跟着形变走。 */
+  clip-path: inset(0 round 999px);
+  -webkit-clip-path: inset(0 round 999px);
+}
+
+@keyframes hexSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dony-morph-card { transition: none; }
+}

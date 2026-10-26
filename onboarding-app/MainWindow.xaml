@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="IntelligentStudio.Onboarding.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="intelligentSTUDIO">
+
+    <Grid x:Name="RootGrid" Background="Transparent">
+        <Grid.RowDefinitions>
+            <!-- 0：步骤内容（媒体 + 介绍 + 选项） -->
+            <RowDefinition Height="*" />
+            <!-- 1：底部操作 -->
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="StepHost" Grid.Row="0" />
+
+        <!-- 无系统标题栏时的拖动区域（窗口居中时不必拖到内容；仅作兜底） -->
+        <Border x:Name="DragBar" Grid.Row="0" Height="52" VerticalAlignment="Top"
+                Background="Transparent" IsHitTestVisible="False" />
+
+        <!-- 左上「上一步」、右上关闭；空处不挡拖动，交给系统标题栏区域 -->
+        <Grid Grid.Row="0" Height="64" Padding="16,12,16,0" VerticalAlignment="Top">
+            <Button x:Name="BackButton" Style="{StaticResource ChromeButtonStyle}" Opacity="0.9"
+                    HorizontalAlignment="Left" VerticalAlignment="Top"
+                    AutomationProperties.Name="上一步" Click="Back_Click">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE72B;" FontSize="11" />
+                    <TextBlock Text="上一步" />
+                </StackPanel>
+            </Button>
+
+            <Button x:Name="CloseButton" Style="{StaticResource ChromeButtonStyle}" Opacity="0.9"
+                    Width="32" Padding="0" HorizontalAlignment="Right" VerticalAlignment="Top"
+                    AutomationProperties.Name="关闭" Click="Close_Click">
+                <FontIcon Glyph="&#xE711;" FontSize="11" />
+            </Button>
+        </Grid>
+
+        <Grid Grid.Row="1" Padding="32,8,32,24">
+            <Button x:Name="PrimaryButton" Style="{StaticResource PrimaryActionButtonStyle}"
+                    Content="继续" HorizontalAlignment="Right" Click="Primary_Click" />
+        </Grid>
+    </Grid>
+</Window>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="PhotoEditor.Views.ReframePanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Padding="20,4,18,24" Spacing="20">
+
+            <Border Style="{StaticResource CardStyle}" Padding="14">
+                <StackPanel Spacing="4">
+                    <TextBlock x:Name="StateLabel" Text="准备中" FontSize="12.5"
+                               Foreground="{StaticResource AppTextPrimary}" />
+                    <TextBlock x:Name="DetailLabel" Text="正在加载三维场景。"
+                               Style="{StaticResource TertiaryTextStyle}" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Button x:Name="RebuildButton" Content="重新重建" Style="{StaticResource OutlinePillButtonStyle}"
+                    HorizontalAlignment="Stretch" Click="OnRebuild" IsEnabled="False" />
+
+            <StackPanel x:Name="EngineSection" Spacing="8">
+                <TextBlock Text="补全方式" Style="{StaticResource SectionTitleStyle}" />
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <RadioButton GroupName="EngineGroupReframe" x:Name="EngineBuiltin" Content="内置" Tag="builtin"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnEngineClicked" />
+                    <RadioButton GroupName="EngineGroupReframe" x:Name="EngineApi" Content="接口" Tag="api"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnEngineClicked" IsChecked="True" />
+                </StackPanel>
+                <TextBlock x:Name="EngineHint" Style="{StaticResource TertiaryTextStyle}" TextWrapping="Wrap" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

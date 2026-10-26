@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="DonySettings.Views.WritingAssistPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer Padding="20,12,20,20">
+        <StackPanel Spacing="14" MaxWidth="720" HorizontalAlignment="Left">
+
+            <TextBlock Text="书写辅助" Style="{StaticResource DonyTitleStyle}" />
+
+            <!-- 介绍 -->
+            <Border Style="{StaticResource DonyCardStyle}" Padding="20">
+                <StackPanel Spacing="10">
+                    <Image Source="ms-appx:///书写辅助.png" Width="64" Height="64"
+                           HorizontalAlignment="Left" />
+                    <TextBlock Text="书写辅助" FontSize="22" FontWeight="SemiBold" />
+                    <TextBlock Style="{StaticResource DonySecondaryStyle}" FontSize="13"
+                               Text="选中任意程序中的文字，用校对、重写和风格调整改写原文，或输入自定义改写要求。" />
+                </StackPanel>
+            </Border>
+
+            <!-- 快捷键 -->
+            <Border Style="{StaticResource DonyCardStyle}">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="双击 Ctrl 启动书写辅助" FontWeight="SemiBold" />
+                        <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                                   Text="开启后，选中文字并双击 Ctrl 直接打开改写面板；未选中文字时不显示。" />
+                    </StackPanel>
+                    <ToggleSwitch x:Name="DoubleCtrlToggle" Grid.Column="1"
+                                  Toggled="DoubleCtrl_Toggled" />
+                </Grid>
+            </Border>
+
+            <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                       Text="更改后重启 STUDIO 生效。" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>

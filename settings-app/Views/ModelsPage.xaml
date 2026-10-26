@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="DonySettings.Views.ModelsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer Padding="20,12,20,20">
+        <StackPanel Spacing="14" MaxWidth="720" HorizontalAlignment="Left">
+
+            <TextBlock Text="模型" Style="{StaticResource DonyTitleStyle}" />
+
+            <!-- 主模型 -->
+            <Border Style="{StaticResource DonyCardStyle}">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="主模型" FontWeight="SemiBold" FontSize="15" />
+                    <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                               Text="主模型为 Dony、视觉智能和书写辅助提供理解与生成能力，并生成上下文生图的提示词。" />
+
+                    <TextBox x:Name="BaseUrlBox" Header="接口地址"
+                             PlaceholderText="https://api.deepseek.com" />
+                    <PasswordBox x:Name="ApiKeyBox" Header="API 密钥"
+                                 PlaceholderText="sk-…" PasswordRevealMode="Peek" />
+                    <TextBox x:Name="ModelBox" Header="模型名称"
+                             PlaceholderText="deepseek-v4-flash" />
+                    <TextBox x:Name="VisionModelBox" Header="视觉模型（可选）"
+                             PlaceholderText="与主模型相同" />
+                    <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                               Text="用于 Edge 扩展中的视觉智能；未填写时使用主模型。" />
+                </StackPanel>
+            </Border>
+
+            <!-- 图像模型 -->
+            <Border Style="{StaticResource DonyCardStyle}">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="图像模型" FontWeight="SemiBold" FontSize="15" />
+                    <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                               Text="图像模型为图乐园提供服务。" />
+
+                    <TextBox x:Name="ImageBaseUrlBox" Header="接口地址"
+                             PlaceholderText="https://api.openai.com 或 https://dashscope.aliyuncs.com" />
+                    <PasswordBox x:Name="ImageApiKeyBox" Header="API 密钥"
+                                 PlaceholderText="sk-…" PasswordRevealMode="Peek" />
+                    <TextBox x:Name="ImageModelBox" Header="模型名称"
+                             PlaceholderText="例如 gpt-image-1 或 wanx2.1-t2i-turbo；Stable Diffusion WebUI 无需填写" />
+                    <ComboBox x:Name="ImageProviderBox" Header="接口协议" HorizontalAlignment="Stretch">
+                        <ComboBoxItem Content="自动识别" Tag="auto" />
+                        <ComboBoxItem Content="OpenAI 兼容（/v1/images/generations）" Tag="openai" />
+                        <ComboBoxItem Content="通义万相（DashScope 异步任务）" Tag="dashscope" />
+                    </ComboBox>
+
+                    <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                               Text="图乐园读取此配置。未指定协议时按 OpenAI 兼容接口处理。" />
+                </StackPanel>
+            </Border>
+
+            <!-- 编辑模型 -->
+            <Border Style="{StaticResource DonyCardStyle}">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="编辑模型" FontWeight="SemiBold" FontSize="15" />
+                    <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                               Text="用于蒙版重绘与局部编辑。留空时沿用图像模型。" />
+
+                    <TextBox x:Name="EditBaseUrlBox" Header="接口地址"
+                             PlaceholderText="http://100.71.169.105:8686" />
+                    <PasswordBox x:Name="EditApiKeyBox" Header="API 密钥"
+                                 PlaceholderText="sk-…" PasswordRevealMode="Peek" />
+                    <TextBox x:Name="EditModelBox" Header="模型名称"
+                             PlaceholderText="例如 FLUX.1-Fill-dev" />
+                    <ComboBox x:Name="EditProviderBox" Header="接口协议" HorizontalAlignment="Stretch">
+                        <ComboBoxItem Content="自动识别" Tag="auto" />
+                        <ComboBoxItem Content="FLUX Fill（/v1/edit）" Tag="filledit" />
+                        <ComboBoxItem Content="OpenAI 兼容（/v1/images/edits）" Tag="openai" />
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button x:Name="SaveButton" Content="保存" Style="{ThemeResource AccentButtonStyle}"
+                        MinWidth="96" Click="Save_Click" />
+                <Button Content="撤销更改" Click="Reload_Click" />
+                <ProgressRing x:Name="Busy" IsActive="False" Width="20" Height="20" />
+            </StackPanel>
+
+            <InfoBar x:Name="Result" IsOpen="False" IsClosable="True" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>

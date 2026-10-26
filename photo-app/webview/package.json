@@ -1,0 +1,21 @@
+{
+  "name": "photo-reframe-webview",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@sparkjsdev/spark": "^2.1.0",
+    "exifr": "^7.1.3",
+    "lucide": "^1.20.0",
+    "onnxruntime-node": "^1.30.0",
+    "sharp": "^0.33.5",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vite": "^6.4.3"
+  }
+}

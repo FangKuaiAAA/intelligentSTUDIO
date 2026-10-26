@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="IntelligentStudio.Onboarding.Views.WelcomeStepPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="660"
+                    Spacing="16" Padding="32,0,32,24">
+            <Image x:Name="HeroIcon" Width="96" Height="96" Stretch="Uniform"
+                   HorizontalAlignment="Center" Opacity="0" />
+            <TextBlock x:Name="TitleText" FontSize="34" FontWeight="SemiBold"
+                       FontFamily="Segoe UI Variable Display" TextAlignment="Center"
+                       TextWrapping="Wrap" Opacity="0" />
+            <TextBlock x:Name="DescText" Style="{StaticResource OnboardingSecondaryStyle}"
+                       FontSize="14" TextAlignment="Center" Opacity="0" />
+        </StackPanel>
+    </Grid>
+</UserControl>

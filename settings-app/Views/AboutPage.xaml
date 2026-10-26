@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="DonySettings.Views.AboutPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer Padding="20,12,20,20">
+        <StackPanel Spacing="14" MaxWidth="720" HorizontalAlignment="Left">
+
+            <TextBlock Text="关于" Style="{StaticResource DonyTitleStyle}" />
+
+            <Border Style="{StaticResource DonyCardStyle}" Padding="20">
+                <StackPanel Spacing="12">
+                    <Border CornerRadius="18" BorderThickness="2" Padding="6"
+                            BorderBrush="{StaticResource RainbowBrush}"
+                            HorizontalAlignment="Left">
+                        <Image Source="ms-appx:///intelligentSTUDIO.png" Width="64" Height="64" />
+                    </Border>
+                    <TextBlock Text="intelligentSTUDIO" FontSize="22" FontWeight="SemiBold"
+                               TextWrapping="Wrap" />
+                    <TextBlock Text="版本 0.1.0"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBlock Style="{StaticResource DonySecondaryStyle}" FontSize="13"
+                               Text="intelligentSTUDIO 允许每台 Windows 电脑拥有“系统级别”AI 能力：唤醒 Dony 对话，用视觉智能理解屏幕内容，用书写辅助改写文字，用图乐园和照片编辑器处理图像。模型服务由第三方提供，生成结果请自行核对。" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource DonyCardStyle}" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Style="{StaticResource DonySecondaryStyle}" FontSize="13"
+                               Text="更好，更高级美观的类 Windows 系统级人工智能，兼容几乎所有现代 Windows 电脑（Windows 10 21H2+、Windows 11，需要显卡支持 DirectX 12）。" />
+                    <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}" />
+                    <TextBlock Style="{StaticResource DonySecondaryStyle}" FontSize="13"
+                               Text="软件开发者：方块AAA（bilibili UP：方x盒，GitHub：FangkuaiAAA），个人和 AI 完成。" />
+                    <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}" />
+                    <TextBlock Style="{StaticResource DonySecondaryStyle}" FontSize="13"
+                               Text="“照片编辑器”中的“照片重构”功能修改自 GitHub：henjicc 的“Photo-Reframing”项目（bilibili UP：痕继痕迹）。" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  intelligentSTUDIO 加载项清单（add-in only manifest）
+
+  三个关键约束，改动前务必知悉：
+  1. 一个加载项**只能有一个自定义选项卡**（官方限制：Add-ins are limited to one custom tab），
+     所以「书写辅助」「图乐园」做成同一个选项卡里的两个大按钮，而不是两个选项卡；
+  2. **共享运行时暂时关闭**：<Runtimes> 在部分 Office 构建上会让整份清单被判无效，
+     表现是连"我的加载项"里都看不到。功能区因此走隐藏运行时（FunctionFile），
+     代价是功能区与任务窗格不共享内存状态 —— 窗格内的保留/复原仍可用，
+     功能区的同名按钮在无待定结果时只给一句提示。待选项卡稳定后再作为增量加回；
+  3. 每组不超过 3 个控件，否则自动降级为小图标（这里是 1 + 2 + 3 = 6 个，三组各达标）。
+-->
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+           xsi:type="TaskPaneApp">
+
+  <Id>8e2f4b7a-3c15-4a86-9a1d-6f0b2c9d4e11</Id>
+  <Version>1.0.0.1</Version>
+  <ProviderName>intelligentSTUDIO</ProviderName>
+  <DefaultLocale>zh-CN</DefaultLocale>
+  <DisplayName DefaultValue="intelligentSTUDIO" />
+  <Description DefaultValue="在 Word、Excel、PowerPoint 中使用书写辅助与图乐园。" />
+  <IconUrl DefaultValue="https://localhost:8771/icons/32/studio.png" />
+  <HighResolutionIconUrl DefaultValue="https://localhost:8771/icons/80/studio.png" />
+  <SupportUrl DefaultValue="https://localhost:8771/support.html" />
+
+  <Hosts>
+    <Host Name="Document" />
+    <Host Name="Workbook" />
+    <Host Name="Presentation" />
+  </Hosts>
+
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://localhost:8771/taskpane.html" />
+  </DefaultSettings>
+
+  <Permissions>ReadWriteDocument</Permissions>
+
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+                    xsi:type="VersionOverridesV1_0">
+    <Requirements>
+      <bt:Sets DefaultMinVersion="1.1">
+        <bt:Set Name="AddinCommands" />
+      </bt:Sets>
+    </Requirements>
+
+    <Hosts>
+      <!-- ======================= Word ======================= -->
+      <Host xsi:type="Document">
+        <DesktopFormFactor>
+          <FunctionFile resid="Runtime.Url" />
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <CustomTab id="TabIntelligentStudio_W">
+              <Group id="GroupQuick_W">
+                <Label resid="GroupQuick.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.Quick.16" />
+                  <bt:Image size="32" resid="Icon.Quick.32" />
+                  <bt:Image size="80" resid="Icon.Quick.80" />
+                </Icon>
+                <Control xsi:type="Menu" id="MenuQuick_W">
+                  <Label resid="MenuQuick.Label" />
+                  <Supertip>
+                    <Title resid="MenuQuick.Label" />
+                    <Description resid="Tip.Quick" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Quick.16" />
+                    <bt:Image size="32" resid="Icon.Quick.32" />
+                    <bt:Image size="80" resid="Icon.Quick.80" />
+                  </Icon>
+                  <Items>
+                    <Item id="QrProofread_W">
+                      <Label resid="Qr.Proofread" />
+                      <Supertip><Title resid="Qr.Proofread" /><Description resid="QrProofread.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrProofread</FunctionName></Action>
+                    </Item>
+                    <Item id="QrRewrite_W">
+                      <Label resid="Qr.Rewrite" />
+                      <Supertip><Title resid="Qr.Rewrite" /><Description resid="QrRewrite.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrRewrite</FunctionName></Action>
+                    </Item>
+                    <Item id="QrFriendly_W">
+                      <Label resid="Qr.Friendly" />
+                      <Supertip><Title resid="Qr.Friendly" /><Description resid="QrFriendly.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrFriendly</FunctionName></Action>
+                    </Item>
+                    <Item id="QrFormal_W">
+                      <Label resid="Qr.Formal" />
+                      <Supertip><Title resid="Qr.Formal" /><Description resid="QrFormal.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrFormal</FunctionName></Action>
+                    </Item>
+                    <Item id="QrConcise_W">
+                      <Label resid="Qr.Concise" />
+                      <Supertip><Title resid="Qr.Concise" /><Description resid="QrConcise.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrConcise</FunctionName></Action>
+                    </Item>
+                    <Item id="QrList_W">
+                      <Label resid="Qr.List" />
+                      <Supertip><Title resid="Qr.List" /><Description resid="QrList.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrList</FunctionName></Action>
+                    </Item>
+                    <Item id="QrTable_W">
+                      <Label resid="Qr.Table" />
+                      <Supertip><Title resid="Qr.Table" /><Description resid="QrTable.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrTable</FunctionName></Action>
+                    </Item>
+                  </Items>
+                </Control>
+                <Control xsi:type="Button" id="BtnIllustration_W">
+                  <Label resid="Btn.Illustration" />
+                  <Supertip>
+                    <Title resid="Btn.Illustration" />
+                    <Description resid="Tip.Illustration" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Illustration.16" />
+                    <bt:Image size="32" resid="Icon.Illustration.32" />
+                    <bt:Image size="80" resid="Icon.Illustration.80" />
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>insertIllustration</FunctionName></Action>
+                </Control>
+              </Group>
+
+              <Group id="GroupStudio_W">
+                <Label resid="GroupStudio.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.Studio.16" />
+                  <bt:Image size="32" resid="Icon.Studio.32" />
+                  <bt:Image size="80" resid="Icon.Studio.80" />
+                </Icon>
+                <Control xsi:type="Button" id="BtnWriting_W">
+                  <Label resid="Btn.Writing" />
+                  <Supertip>
+                    <Title resid="Btn.Writing" />
+                    <Description resid="Tip.Writing" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Writing.16" />
+                    <bt:Image size="32" resid="Icon.Writing.32" />
+                    <bt:Image size="80" resid="Icon.Writing.80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <SourceLocation resid="Pane.Writing" />
+                  </Action>
+                </Control>
+                <Control xsi:type="Button" id="BtnPlayground_W">
+                  <Label resid="Btn.Playground" />
+                  <Supertip>
+                    <Title resid="Btn.Playground" />
+                    <Description resid="Tip.Playground" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Playground.16" />
+                    <bt:Image size="32" resid="Icon.Playground.32" />
+                    <bt:Image size="80" resid="Icon.Playground.80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <SourceLocation resid="Pane.Playground" />
+                  </Action>
+                </Control>
+              </Group>
+
+              <Group id="GroupResult_W">
+                <Label resid="GroupResult.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.Restore.16" />
+                  <bt:Image size="32" resid="Icon.Restore.32" />
+                  <bt:Image size="80" resid="Icon.Restore.80" />
+                </Icon>
+                <Control xsi:type="Button" id="BtnRestore_W">
+                  <Label resid="Btn.Restore" />
+                  <Supertip>
+                    <Title resid="Btn.Restore" />
+                    <Description resid="Tip.Restore" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Restore.16" />
+                    <bt:Image size="32" resid="Icon.Restore.32" />
+                    <bt:Image size="80" resid="Icon.Restore.80" />
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>ribbonRestore</FunctionName></Action>
+                </Control>
+              </Group>
+
+              <Label resid="Tab.Label" />
+            </CustomTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+
+      <!-- ======================= Excel ======================= -->
+      <Host xsi:type="Workbook">
+        <DesktopFormFactor>
+          <FunctionFile resid="Runtime.Url" />
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <CustomTab id="TabIntelligentStudio_X">
+              <Group id="GroupQuick_X">
+                <Label resid="GroupQuick.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.Quick.16" />
+                  <bt:Image size="32" resid="Icon.Quick.32" />
+                  <bt:Image size="80" resid="Icon.Quick.80" />
+                </Icon>
+                <Control xsi:type="Menu" id="MenuQuick_X">
+                  <Label resid="MenuQuick.Label" />
+                  <Supertip>
+                    <Title resid="MenuQuick.Label" />
+                    <Description resid="Tip.Quick" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Quick.16" />
+                    <bt:Image size="32" resid="Icon.Quick.32" />
+                    <bt:Image size="80" resid="Icon.Quick.80" />
+                  </Icon>
+                  <Items>
+                    <Item id="QrProofread_X">
+                      <Label resid="Qr.Proofread" />
+                      <Supertip><Title resid="Qr.Proofread" /><Description resid="QrProofread.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrProofread</FunctionName></Action>
+                    </Item>
+                    <Item id="QrRewrite_X">
+                      <Label resid="Qr.Rewrite" />
+                      <Supertip><Title resid="Qr.Rewrite" /><Description resid="QrRewrite.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrRewrite</FunctionName></Action>
+                    </Item>
+                    <Item id="QrFriendly_X">
+                      <Label resid="Qr.Friendly" />
+                      <Supertip><Title resid="Qr.Friendly" /><Description resid="QrFriendly.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrFriendly</FunctionName></Action>
+                    </Item>
+                    <Item id="QrFormal_X">
+                      <Label resid="Qr.Formal" />
+                      <Supertip><Title resid="Qr.Formal" /><Description resid="QrFormal.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrFormal</FunctionName></Action>
+                    </Item>
+                    <Item id="QrConcise_X">
+                      <Label resid="Qr.Concise" />
+                      <Supertip><Title resid="Qr.Concise" /><Description resid="QrConcise.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrConcise</FunctionName></Action>
+                    </Item>
+                    <Item id="QrList_X">
+                      <Label resid="Qr.List" />
+                      <Supertip><Title resid="Qr.List" /><Description resid="QrList.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrList</FunctionName></Action>
+                    </Item>
+                    <Item id="QrTable_X">
+                      <Label resid="Qr.Table" />
+                      <Supertip><Title resid="Qr.Table" /><Description resid="QrTable.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrTable</FunctionName></Action>
+                    </Item>
+                  </Items>
+                </Control>
+                <Control xsi:type="Button" id="BtnIllustration_X">
+                  <Label resid="Btn.Illustration" />
+                  <Supertip>
+                    <Title resid="Btn.Illustration" />
+                    <Description resid="Tip.Illustration" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Illustration.16" />
+                    <bt:Image size="32" resid="Icon.Illustration.32" />
+                    <bt:Image size="80" resid="Icon.Illustration.80" />
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>insertIllustration</FunctionName></Action>
+                </Control>
+              </Group>
+
+              <Group id="GroupStudio_X">
+                <Label resid="GroupStudio.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.Studio.16" />
+                  <bt:Image size="32" resid="Icon.Studio.32" />
+                  <bt:Image size="80" resid="Icon.Studio.80" />
+                </Icon>
+                <Control xsi:type="Button" id="BtnWriting_X">
+                  <Label resid="Btn.Writing" />
+                  <Supertip>
+                    <Title resid="Btn.Writing" />
+                    <Description resid="Tip.Writing" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Writing.16" />
+                    <bt:Image size="32" resid="Icon.Writing.32" />
+                    <bt:Image size="80" resid="Icon.Writing.80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane"><SourceLocation resid="Pane.Writing" /></Action>
+                </Control>
+                <Control xsi:type="Button" id="BtnPlayground_X">
+                  <Label resid="Btn.Playground" />
+                  <Supertip>
+                    <Title resid="Btn.Playground" />
+                    <Description resid="Tip.Playground" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Playground.16" />
+                    <bt:Image size="32" resid="Icon.Playground.32" />
+                    <bt:Image size="80" resid="Icon.Playground.80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane"><SourceLocation resid="Pane.Playground" /></Action>
+                </Control>
+              </Group>
+
+              <Group id="GroupResult_X">
+                <Label resid="GroupResult.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.Restore.16" />
+                  <bt:Image size="32" resid="Icon.Restore.32" />
+                  <bt:Image size="80" resid="Icon.Restore.80" />
+                </Icon>
+                <Control xsi:type="Button" id="BtnRestore_X">
+                  <Label resid="Btn.Restore" />
+                  <Supertip>
+                    <Title resid="Btn.Restore" />
+                    <Description resid="Tip.Restore" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Restore.16" />
+                    <bt:Image size="32" resid="Icon.Restore.32" />
+                    <bt:Image size="80" resid="Icon.Restore.80" />
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>ribbonRestore</FunctionName></Action>
+                </Control>
+              </Group>
+
+              <Label resid="Tab.Label" />
+            </CustomTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+
+      <!-- ======================= PowerPoint ======================= -->
+      <Host xsi:type="Presentation">
+        <DesktopFormFactor>
+          <FunctionFile resid="Runtime.Url" />
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <CustomTab id="TabIntelligentStudio_P">
+              <Group id="GroupQuick_P">
+                <Label resid="GroupQuick.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.Quick.16" />
+                  <bt:Image size="32" resid="Icon.Quick.32" />
+                  <bt:Image size="80" resid="Icon.Quick.80" />
+                </Icon>
+                <Control xsi:type="Menu" id="MenuQuick_P">
+                  <Label resid="MenuQuick.Label" />
+                  <Supertip>
+                    <Title resid="MenuQuick.Label" />
+                    <Description resid="Tip.Quick" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Quick.16" />
+                    <bt:Image size="32" resid="Icon.Quick.32" />
+                    <bt:Image size="80" resid="Icon.Quick.80" />
+                  </Icon>
+                  <Items>
+                    <Item id="QrProofread_P">
+                      <Label resid="Qr.Proofread" />
+                      <Supertip><Title resid="Qr.Proofread" /><Description resid="QrProofread.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrProofread</FunctionName></Action>
+                    </Item>
+                    <Item id="QrRewrite_P">
+                      <Label resid="Qr.Rewrite" />
+                      <Supertip><Title resid="Qr.Rewrite" /><Description resid="QrRewrite.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrRewrite</FunctionName></Action>
+                    </Item>
+                    <Item id="QrFriendly_P">
+                      <Label resid="Qr.Friendly" />
+                      <Supertip><Title resid="Qr.Friendly" /><Description resid="QrFriendly.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrFriendly</FunctionName></Action>
+                    </Item>
+                    <Item id="QrFormal_P">
+                      <Label resid="Qr.Formal" />
+                      <Supertip><Title resid="Qr.Formal" /><Description resid="QrFormal.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrFormal</FunctionName></Action>
+                    </Item>
+                    <Item id="QrConcise_P">
+                      <Label resid="Qr.Concise" />
+                      <Supertip><Title resid="Qr.Concise" /><Description resid="QrConcise.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrConcise</FunctionName></Action>
+                    </Item>
+                    <Item id="QrList_P">
+                      <Label resid="Qr.List" />
+                      <Supertip><Title resid="Qr.List" /><Description resid="QrList.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrList</FunctionName></Action>
+                    </Item>
+                    <Item id="QrTable_P">
+                      <Label resid="Qr.Table" />
+                      <Supertip><Title resid="Qr.Table" /><Description resid="QrTable.Desc" /></Supertip>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>qrTable</FunctionName></Action>
+                    </Item>
+                  </Items>
+                </Control>
+                <Control xsi:type="Button" id="BtnIllustration_P">
+                  <Label resid="Btn.Illustration" />
+                  <Supertip>
+                    <Title resid="Btn.Illustration" />
+                    <Description resid="Tip.Illustration" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Illustration.16" />
+                    <bt:Image size="32" resid="Icon.Illustration.32" />
+                    <bt:Image size="80" resid="Icon.Illustration.80" />
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>insertIllustration</FunctionName></Action>
+                </Control>
+              </Group>
+
+              <Group id="GroupStudio_P">
+                <Label resid="GroupStudio.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.Studio.16" />
+                  <bt:Image size="32" resid="Icon.Studio.32" />
+                  <bt:Image size="80" resid="Icon.Studio.80" />
+                </Icon>
+                <Control xsi:type="Button" id="BtnWriting_P">
+                  <Label resid="Btn.Writing" />
+                  <Supertip>
+                    <Title resid="Btn.Writing" />
+                    <Description resid="Tip.Writing" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Writing.16" />
+                    <bt:Image size="32" resid="Icon.Writing.32" />
+                    <bt:Image size="80" resid="Icon.Writing.80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane"><SourceLocation resid="Pane.Writing" /></Action>
+                </Control>
+                <Control xsi:type="Button" id="BtnPlayground_P">
+                  <Label resid="Btn.Playground" />
+                  <Supertip>
+                    <Title resid="Btn.Playground" />
+                    <Description resid="Tip.Playground" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Playground.16" />
+                    <bt:Image size="32" resid="Icon.Playground.32" />
+                    <bt:Image size="80" resid="Icon.Playground.80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane"><SourceLocation resid="Pane.Playground" /></Action>
+                </Control>
+              </Group>
+
+              <Group id="GroupResult_P">
+                <Label resid="GroupResult.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.Restore.16" />
+                  <bt:Image size="32" resid="Icon.Restore.32" />
+                  <bt:Image size="80" resid="Icon.Restore.80" />
+                </Icon>
+                <Control xsi:type="Button" id="BtnRestore_P">
+                  <Label resid="Btn.Restore" />
+                  <Supertip>
+                    <Title resid="Btn.Restore" />
+                    <Description resid="Tip.Restore" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Restore.16" />
+                    <bt:Image size="32" resid="Icon.Restore.32" />
+                    <bt:Image size="80" resid="Icon.Restore.80" />
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>ribbonRestore</FunctionName></Action>
+                </Control>
+              </Group>
+
+              <Label resid="Tab.Label" />
+            </CustomTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.Studio.16" DefaultValue="https://localhost:8771/icons/16/studio.png" />
+        <bt:Image id="Icon.Studio.32" DefaultValue="https://localhost:8771/icons/32/studio.png" />
+        <bt:Image id="Icon.Studio.80" DefaultValue="https://localhost:8771/icons/80/studio.png" />
+        <bt:Image id="Icon.Writing.16" DefaultValue="https://localhost:8771/icons/16/writing.png" />
+        <bt:Image id="Icon.Writing.32" DefaultValue="https://localhost:8771/icons/32/writing.png" />
+        <bt:Image id="Icon.Writing.80" DefaultValue="https://localhost:8771/icons/80/writing.png" />
+        <bt:Image id="Icon.Playground.16" DefaultValue="https://localhost:8771/icons/16/playground.png" />
+        <bt:Image id="Icon.Playground.32" DefaultValue="https://localhost:8771/icons/32/playground.png" />
+        <bt:Image id="Icon.Playground.80" DefaultValue="https://localhost:8771/icons/80/playground.png" />
+        <bt:Image id="Icon.Quick.16" DefaultValue="https://localhost:8771/icons/16/edit.png" />
+        <bt:Image id="Icon.Quick.32" DefaultValue="https://localhost:8771/icons/32/edit.png" />
+        <bt:Image id="Icon.Quick.80" DefaultValue="https://localhost:8771/icons/80/edit.png" />
+        <bt:Image id="Icon.Illustration.16" DefaultValue="https://localhost:8771/icons/16/illus.png" />
+        <bt:Image id="Icon.Illustration.32" DefaultValue="https://localhost:8771/icons/32/illus.png" />
+        <bt:Image id="Icon.Illustration.80" DefaultValue="https://localhost:8771/icons/80/illus.png" />
+        <bt:Image id="Icon.Restore.16" DefaultValue="https://localhost:8771/icons/16/undo.png" />
+        <bt:Image id="Icon.Restore.32" DefaultValue="https://localhost:8771/icons/32/undo.png" />
+        <bt:Image id="Icon.Restore.80" DefaultValue="https://localhost:8771/icons/80/undo.png" />
+        <bt:Image id="Icon.Preview.16" DefaultValue="https://localhost:8771/icons/16/preview.png" />
+        <bt:Image id="Icon.Preview.32" DefaultValue="https://localhost:8771/icons/32/preview.png" />
+        <bt:Image id="Icon.Preview.80" DefaultValue="https://localhost:8771/icons/80/preview.png" />
+        <bt:Image id="Icon.Keep.16" DefaultValue="https://localhost:8771/icons/16/keep.png" />
+        <bt:Image id="Icon.Keep.32" DefaultValue="https://localhost:8771/icons/32/keep.png" />
+        <bt:Image id="Icon.Keep.80" DefaultValue="https://localhost:8771/icons/80/keep.png" />
+      </bt:Images>
+
+      <bt:Urls>
+        <bt:Url id="Runtime.Url" DefaultValue="https://localhost:8771/taskpane.html" />
+        <bt:Url id="Pane.Writing" DefaultValue="https://localhost:8771/taskpane.html?mode=writing" />
+        <bt:Url id="Pane.Playground" DefaultValue="https://localhost:8771/taskpane.html?mode=playground" />
+      </bt:Urls>
+
+      <bt:ShortStrings>
+        <bt:String id="Tab.Label" DefaultValue="intelligentSTUDIO" />
+        <bt:String id="GroupQuick.Label" DefaultValue="快速改写" />
+        <bt:String id="GroupStudio.Label" DefaultValue="工作室" />
+        <bt:String id="GroupResult.Label" DefaultValue="结果" />
+        <bt:String id="MenuQuick.Label" DefaultValue="改写选中文字" />
+        <bt:String id="Qr.Proofread" DefaultValue="校对" />
+        <bt:String id="Qr.Rewrite" DefaultValue="改写" />
+        <bt:String id="Qr.Friendly" DefaultValue="友好" />
+        <bt:String id="Qr.Formal" DefaultValue="正式" />
+        <bt:String id="Qr.Concise" DefaultValue="简洁" />
+        <bt:String id="Qr.List" DefaultValue="列表" />
+        <bt:String id="Qr.Table" DefaultValue="表格" />
+        <bt:String id="Btn.Writing" DefaultValue="书写辅助" />
+        <bt:String id="Btn.Playground" DefaultValue="图乐园" />
+        <bt:String id="Btn.Restore" DefaultValue="复原" />
+        <bt:String id="Btn.PreviewText" DefaultValue="预览原文" />
+        <bt:String id="Btn.Illustration" DefaultValue="智能插图" />
+        <bt:String id="Btn.Keep" DefaultValue="保留" />
+      </bt:ShortStrings>
+
+      <bt:LongStrings>
+        <bt:String id="Tip.Quick" DefaultValue="改写选中的文字，可撤销" />
+        <bt:String id="Tip.Writing" DefaultValue="打开书写辅助：先看结果再写入" />
+        <bt:String id="Tip.Playground" DefaultValue="打开图乐园：生成图片并插入" />
+        <bt:String id="Tip.Restore" DefaultValue="取消本次，或写回原文" />
+        <bt:String id="Tip.Preview" DefaultValue="查看原文" />
+        <bt:String id="Tip.Illustration" DefaultValue="按光标处上下文生成插图" />
+        <bt:String id="Tip.Keep" DefaultValue="写入文档" />
+        <bt:String id="QrProofread.Desc" DefaultValue="只改错别字与语病" />
+        <bt:String id="QrRewrite.Desc" DefaultValue="更通顺、条理清楚" />
+        <bt:String id="QrFriendly.Desc" DefaultValue="语气更亲切" />
+        <bt:String id="QrFormal.Desc" DefaultValue="书面、专业" />
+        <bt:String id="QrConcise.Desc" DefaultValue="删去冗词" />
+        <bt:String id="QrList.Desc" DefaultValue="整理为有序列表" />
+        <bt:String id="QrTable.Desc" DefaultValue="整理为表格" />
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

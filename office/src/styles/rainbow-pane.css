@@ -1,0 +1,133 @@
+/* 彩虹药丸在任务窗格里的标定（rainbow-loading-pill skill 的移植 + 窗格参数）
+ *
+ * 与桌面端的三处差异，都是窄窗格（280–520px、背景是文档而非壁纸）逼出来的：
+ *   1. --rb-room 60 → 14：出血被窗格边缘裁掉会露出"断边"；
+ *   2. 磨砂面改成自绘材质：iframe 里的 backdrop-filter 糊不到 Office 文档，
+ *      留着只会让药丸看起来发灰；
+ *   3. 彩虹底层不透明度降到 .55、模糊 5px、inset -2px：窗格里它只是描边上的薄光，
+ *      按桌面端那档会糊成一片色块。
+ */
+
+.st-rb {
+  position: relative;
+  width: 100%;
+  /* 高度写死、且**不允许伸缩**：它是 flex 容器（行或列）的子项，
+     用 flex: 1 1 auto 时放进纵向容器会被拉成一条竖长条，药丸变胶囊。
+     宽度靠 100% 撑满，高度恒为 40px。 */
+  height: 40px;
+  flex: 0 0 auto;
+  min-width: 0;
+  --rb-room: 14px;
+  --rb-bleed: 2px;
+  --rb-rainbow-duration: 14s;
+}
+
+.st-rb .rb-pill {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 5px 0 12px;
+}
+
+.st-rb .rb-pill-surface {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.045),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.st-rb .rb-pill.rb-rainbow-on::before {
+  inset: -2px;
+  opacity: 0.55;
+  filter: blur(5px);
+}
+
+.st-rb .rb-pill:focus-within.rb-rainbow-on::before {
+  opacity: 0.8;
+}
+
+.st-rb-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  color: rgba(29, 29, 31, 0.42);
+  position: relative;
+  z-index: 3;
+  margin-right: 2px;
+}
+
+.st-rb-icon img {
+  display: block;
+  width: 15px;
+  height: 15px;
+}
+
+.st-rb-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 12.5px;
+  color: var(--st-text);
+  position: relative;
+  z-index: 3;
+}
+
+.st-rb-input::placeholder {
+  color: var(--st-text-3);
+}
+
+/* 兜底：个别 WebView2 版本仍会给文本框画内描边/焦点框 */
+.st-rb-input:focus,
+.st-rb-input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.st-rb-send {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #1d1d1f;
+  color: #fff;
+  position: relative;
+  z-index: 3;
+  transition: transform 90ms var(--st-ease-out), opacity var(--st-t-in) var(--st-ease-out);
+}
+
+.st-rb-send:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.st-rb-send:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+}
+
+/* @property 回退：旧 Safari 不做 --rb-rainbow-angle 的角度动画，
+   彩虹会定在第一相位。这里退成静态描边，比"卡住不动"更体面。 */
+.st-rb[data-prop='no'] .rb-pill::before {
+  animation: none;
+  opacity: 0.4;
+}
+
+.st-rb[data-prop='no'] .rb-pill {
+  box-shadow: 0 0 0 1px rgba(94, 92, 230, 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .st-rb .rb-pill::before {
+    animation: none;
+  }
+}

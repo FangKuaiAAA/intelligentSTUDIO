@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="ImagePlayground.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="图乐园">
+
+    <Grid x:Name="RootGrid">
+        <Grid.RowDefinitions>
+            <!-- 0：自绘标题栏 -->
+            <RowDefinition Height="Auto" />
+            <!-- 1：侧栏 + 页面 -->
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 环境色：左上偏紫、右下偏蓝，压低到几乎不可察觉，只为让 Mica 不那么平 -->
+        <Ellipse Grid.RowSpan="2" Width="760" Height="760"
+                 HorizontalAlignment="Left" VerticalAlignment="Top"
+                 Margin="-320,-360,0,0" IsHitTestVisible="False" Opacity="0.20">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#66BF5AF2" Offset="0" />
+                    <GradientStop Color="#00BF5AF2" Offset="1" />
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <Ellipse Grid.RowSpan="2" Width="680" Height="680"
+                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                 Margin="0,0,-260,-320" IsHitTestVisible="False" Opacity="0.16">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#550A84FF" Offset="0" />
+                    <GradientStop Color="#000A84FF" Offset="1" />
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <Grid x:Name="AppTitleBar" Grid.Row="0" Height="40" Margin="0,0,138,0">
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="16,0,0,0" VerticalAlignment="Center">
+                <!-- 应用图标：统一使用 Logo\图乐园.ico -->
+                <Image x:Name="TitleIcon" Width="16" Height="16" VerticalAlignment="Center" />
+                <TextBlock Text="图乐园" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="208" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="#08000000" BorderThickness="0,0,1,0"
+                    BorderBrush="#0FFFFFFF">
+                <StackPanel Padding="0,10,0,0">
+                    <RadioButton x:Name="NavNew" Content="新建" Tag="&#xE710;"
+                                 GroupName="NavGroup"
+                                 Style="{StaticResource SidebarNavItemStyle}"
+                                 Checked="NavNew_Checked" />
+                    <RadioButton x:Name="NavHistory" Content="历史" Tag="&#xE81C;"
+                                 GroupName="NavGroup"
+                                 Style="{StaticResource SidebarNavItemStyle}"
+                                 Checked="NavHistory_Checked" />
+                </StackPanel>
+            </Border>
+
+            <ContentControl Grid.Column="1" x:Name="PageHost"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Stretch">
+                <ContentControl.RenderTransform>
+                    <TranslateTransform x:Name="PageShift" X="0" />
+                </ContentControl.RenderTransform>
+            </ContentControl>
+        </Grid>
+    </Grid>
+</Window>

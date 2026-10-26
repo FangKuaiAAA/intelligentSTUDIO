@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Dony.Views.VoicePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer Padding="20,12,20,20">
+        <StackPanel Spacing="14" MaxWidth="720" HorizontalAlignment="Left">
+
+            <TextBlock Text="语音" Style="{StaticResource DonyTitleStyle}" />
+
+            <Border Style="{StaticResource DonyCardStyle}">
+                <StackPanel Spacing="14">
+                    <Grid>
+                        <TextBlock Text="始终朗读回答" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <ToggleSwitch x:Name="TtsToggle" HorizontalAlignment="Right"
+                                      Toggled="Tts_Toggled" />
+                    </Grid>
+
+                    <Grid>
+                        <TextBlock x:Name="VoiceOnlyLabel" Text="仅在说话使用 Dony 时朗读回答"
+                                   FontWeight="SemiBold" VerticalAlignment="Center"
+                                   TextWrapping="Wrap" />
+                        <ToggleSwitch x:Name="VoiceOnlyToggle" HorizontalAlignment="Right" />
+                    </Grid>
+
+                    <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="音色" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <ComboBox x:Name="VoiceCombo" MinWidth="320"
+                                      DisplayMemberPath="Name" SelectionChanged="Voice_SelectionChanged" />
+                            <Button x:Name="PreviewButton" Click="Preview_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon x:Name="PreviewIcon" FontFamily="Segoe Fluent Icons"
+                                              Glyph="&#xE768;" FontSize="14" />
+                                    <TextBlock x:Name="PreviewLabel" Text="试听" />
+                                </StackPanel>
+                            </Button>
+                            <ProgressRing x:Name="PreviewBusy" IsActive="False" Width="18" Height="18"
+                                          VerticalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button x:Name="SaveButton" Content="保存" Style="{ThemeResource AccentButtonStyle}"
+                        MinWidth="96" Click="Save_Click" />
+                <Button x:Name="ReloadButton" Content="撤销更改" Click="Reload_Click" />
+                <ProgressRing x:Name="Busy" IsActive="False" Width="20" Height="20" />
+            </StackPanel>
+
+            <InfoBar x:Name="Result" IsOpen="False" IsClosable="True" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>

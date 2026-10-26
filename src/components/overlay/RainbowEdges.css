@@ -1,0 +1,120 @@
+.rainbow-edges{position:fixed;inset:0;pointer-events:none;z-index:20;animation:edgesFadeIn .15s ease-out}
+.edge,.corner{pointer-events:none}
+
+/* ===== 语音电平的「外扩层」与贴边白线 =====
+   由 RainbowEdges 以 10Hz 采样 + 每段**线性**过渡驱动（时长由行内 style 给出，与 SAMPLE_MS 同源）。
+   ⚠ 外扩层必须是**新的一层**：光边元素自己带着 CSS 动画（breatheVert/Horz 动的正是 transform），
+      而 CSS 动画会盖掉内联 transform ⇒ 直接写光边元素的 transform 是死代码。
+      放到外层后两套 transform **相乘**：呼吸照旧、电平负责外扩。 */
+.edge-ext{
+  position:absolute; inset:0; pointer-events:none;
+  transition-property: transform, opacity;
+  transition-timing-function: linear;   /* 线性 = 两次采样之间匀速直线，看得见"外缩的移动" */
+  will-change: transform, opacity;
+}
+/* ⚠ 贴边那道白色亮线已整体移除（用户要求"去掉白边"）：
+   它只做亮度、不做形变，是"随电平亮/暗 = 跳"最明显的一处；
+   现在语音这一路的表达全部由上面的外扩层（几何 + 线性）承担。 */
+
+.edge{
+  position:absolute;
+  background-size:300% 100%;
+  filter:blur(22px);
+  opacity:.96;
+}
+
+/* Top */
+.edge-top-glow{
+  top:0;left:-42px;right:-42px;height:38px;
+  background-image:linear-gradient(90deg,
+    #FF0040,#FF2060,#FF4090,#FF6090,#FF80A0,#FFA0B0,#FFB0D0,#CC80FF,
+    #B040E0,#B030FF,#9D60E0,#7D90FF,#60A8FF,#40B0FF,#58CCF0,#70E8FF,
+    #48F0C0,#10F0B0,#58F0C0,#A0F0D0,#D0F0B0,#FFE040,#FFC840,#FFB040,
+    #FFB490,#FFC0A0,#FF90B0,#FF60A0
+  );
+  transform-origin:top center;
+  animation:flowHoriz 60s linear infinite,breatheVert 10s ease-in-out infinite;
+  mask-image:linear-gradient(to top,transparent 0%,transparent 10%,rgba(0,0,0,.04) 22%,rgba(0,0,0,.12) 38%,rgba(0,0,0,.3) 54%,rgba(0,0,0,.55) 70%,black 88%,black 100%);
+  -webkit-mask-image:linear-gradient(to top,transparent 0%,transparent 10%,rgba(0,0,0,.04) 22%,rgba(0,0,0,.12) 38%,rgba(0,0,0,.3) 54%,rgba(0,0,0,.55) 70%,black 88%,black 100%);
+}
+
+/* Right */
+.edge-right-glow{
+  top:-42px;bottom:-42px;right:0;width:38px;
+  background-size:100% 300%;
+  background-image:linear-gradient(180deg,
+    #FF60A0,#FF80B0,#FFB0D0,#D090F0,#CC80FF,#B870F0,#B030FF,#9068F0,
+    #7D90FF,#6090E0,#40B0FF,#5098E0,#70E8FF,#60D8E0,#10F0B0,#30F0C0,
+    #A0F0D0,#80D8B0,#FFE040,#FFC840,#FFB040,#FFB880,#FFC0A0,#FF90A0,
+    #FF60A0,#FF3060,#FF0040
+  );
+  transform-origin:right center;
+  animation:flowVert 64s linear infinite,breatheHorz 10s ease-in-out infinite;
+  mask-image:linear-gradient(to right,transparent 0%,transparent 10%,rgba(0,0,0,.04) 22%,rgba(0,0,0,.12) 38%,rgba(0,0,0,.3) 54%,rgba(0,0,0,.55) 70%,black 88%,black 100%);
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,transparent 10%,rgba(0,0,0,.04) 22%,rgba(0,0,0,.12) 38%,rgba(0,0,0,.3) 54%,rgba(0,0,0,.55) 70%,black 88%,black 100%);
+}
+
+/* Bottom */
+.edge-bottom-glow{
+  bottom:0;left:-42px;right:-42px;height:38px;
+  background-image:linear-gradient(270deg,
+    #FFE040,#FFD060,#FFB040,#FFC080,#FFC0A0,#80E0C0,#50F0C0,#40E0D0,
+    #40FFE0,#40E0F0,#40D0FF,#4888E0,#4D90FF,#7450F0,#9B50FF,#B868F0,
+    #C450FF,#D888F0,#E8B4FF,#F0A0D0,#FF80B0,#FF6090,#FF4090,#FF6090,
+    #FFA040,#FFC040,#FFE040
+  );
+  transform-origin:bottom center;
+  animation:flowHorizRev 68s linear infinite,breatheVertBot 11s ease-in-out infinite;
+  mask-image:linear-gradient(to bottom,transparent 0%,transparent 10%,rgba(0,0,0,.04) 22%,rgba(0,0,0,.12) 38%,rgba(0,0,0,.3) 54%,rgba(0,0,0,.55) 70%,black 88%,black 100%);
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,transparent 10%,rgba(0,0,0,.04) 22%,rgba(0,0,0,.12) 38%,rgba(0,0,0,.3) 54%,rgba(0,0,0,.55) 70%,black 88%,black 100%);
+}
+
+/* Left */
+.edge-left-glow{
+  top:-42px;bottom:-42px;left:0;width:38px;
+  background-size:100% 300%;
+  background-image:linear-gradient(0deg,
+    #FFE040,#FFD060,#FFB040,#FFC080,#FFC0A0,#80E0C0,#50F0C0,#40E0D0,
+    #40FFE0,#40E0F0,#40D0FF,#4888E0,#4D90FF,#7450F0,#9B50FF,#B868F0,
+    #C450FF,#D888F0,#E8B4FF,#F0A0D0,#FF80B0,#FF6090,#FF4090,#FF6090,
+    #FFA040,#FFC040,#FFE040
+  );
+  transform-origin:left center;
+  animation:flowVertRev 72s linear infinite,breatheHorzL 11s ease-in-out infinite;
+  mask-image:linear-gradient(to left,transparent 0%,transparent 10%,rgba(0,0,0,.04) 22%,rgba(0,0,0,.12) 38%,rgba(0,0,0,.3) 54%,rgba(0,0,0,.55) 70%,black 88%,black 100%);
+  -webkit-mask-image:linear-gradient(to left,transparent 0%,transparent 10%,rgba(0,0,0,.04) 22%,rgba(0,0,0,.12) 38%,rgba(0,0,0,.3) 54%,rgba(0,0,0,.55) 70%,black 88%,black 100%);
+}
+
+/* Corners */
+.corner{position:fixed;border-radius:50%;filter:blur(22px);opacity:.78;z-index:21}
+.corner-tl{top:-18px;left:-18px;width:44px;height:44px;
+  background:radial-gradient(circle at 30% 30%,#FF6B9D,#C44DFF 35%,#4D8AFF 60%,transparent 100%)}
+.corner-tr{top:-18px;right:-18px;width:44px;height:44px;
+  background:radial-gradient(circle at 70% 30%,#FF6B9D,#C44DFF 35%,#4D8AFF 60%,transparent 100%)}
+.corner-bl{bottom:-18px;left:-18px;width:44px;height:44px;
+  background:radial-gradient(circle at 30% 70%,#FFD84D,#4DFFD9 35%,#4D8AFF 60%,transparent 100%)}
+.corner-br{bottom:-18px;right:-18px;width:44px;height:44px;
+  background:radial-gradient(circle at 70% 70%,#FFD84D,#4DFFD9 35%,#4D8AFF 60%,transparent 100%)}
+
+/* Keystroke pulse */
+.edge.keystroke-pulse{animation:flowHoriz 60s linear infinite,breatheVert 10s ease-in-out infinite,pulseScaleT .4s ease-out}
+.edge-right-glow.keystroke-pulse,.edge-left-glow.keystroke-pulse{animation:flowVert 64s linear infinite,breatheHorz 10s ease-in-out infinite,pulseScaleH .4s ease-out}
+
+/* Animations */
+@keyframes flowHoriz    {0%{background-position:0% 0%}100%{background-position:300% 0%}}
+@keyframes flowHorizRev {0%{background-position:300% 0%}100%{background-position:0% 0%}}
+@keyframes flowVert     {0%{background-position:0% 0%}100%{background-position:0% 300%}}
+@keyframes flowVertRev  {0%{background-position:0% 300%}100%{background-position:0% 0%}}
+
+@keyframes breatheVert   {0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.1)}}
+@keyframes breatheVertBot{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.08)}}
+@keyframes breatheHorz   {0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.1)}}
+@keyframes breatheHorzL  {0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.08)}}
+
+@keyframes burstVert{0%{transform:scaleY(2.5)}100%{transform:scaleY(1)}}
+@keyframes burstHorz{0%{transform:scaleX(2.5)}100%{transform:scaleX(1)}}
+
+@keyframes pulseScaleT{0%{transform:scaleY(1);filter:blur(22px)}20%{transform:scaleY(1.6);filter:blur(4px)}55%{transform:scaleY(.85);filter:blur(14px)}100%{transform:scaleY(1);filter:blur(22px)}}
+@keyframes pulseScaleH{0%{transform:scaleX(1);filter:blur(22px)}18%{transform:scaleX(1.6);filter:blur(3px)}50%{transform:scaleX(.88);filter:blur(10px)}100%{transform:scaleX(1);filter:blur(22px)}}
+
+@keyframes edgesFadeIn{0%{opacity:0}100%{opacity:1}}

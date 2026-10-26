@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="DonySettings.Views.GeneralPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer Padding="20,12,20,20">
+        <StackPanel Spacing="14" MaxWidth="720" HorizontalAlignment="Left">
+
+            <TextBlock Text="通用" Style="{StaticResource DonyTitleStyle}" />
+
+            <Border Style="{StaticResource DonyCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="启动" FontWeight="SemiBold" FontSize="15" />
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="开机启动" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                                       Text="开启后，登录 Windows 时自动启动 intelligentSTUDIO。" />
+                        </StackPanel>
+                        <ToggleSwitch x:Name="StartupToggle" Grid.Column="1"
+                                      Toggled="Startup_Toggled" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource DonyCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="扩展" FontWeight="SemiBold" FontSize="15" />
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="Microsoft Edge 扩展" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                                       Text="在 Edge 中使用视觉智能，并整理标签页与收藏夹。" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="准备扩展文件" VerticalAlignment="Center"
+                                Click="ReinstallEdge_Click" />
+                    </Grid>
+
+                    <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="Office 插件" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                                       Text="在 Word、Excel 和 PowerPoint 中使用书写辅助与图乐园。" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                                    VerticalAlignment="Center">
+                            <Button Content="安装教程" Click="OfficeGuide_Click" />
+                            <Button Content="创建共享并注册" Click="ReinstallOffice_Click" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource DonyCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="数据" FontWeight="SemiBold" FontSize="15" />
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="清空 Dony 对话记录" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                                       Text="删除全部对话记录及其中的操作记录。此操作无法撤销。" />
+                        </StackPanel>
+                        <Button x:Name="ClearHistoryButton" Grid.Column="1" Content="清空"
+                                VerticalAlignment="Center" Click="ClearHistory_Click" />
+                    </Grid>
+
+                    <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="清空个人数据" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                                       Text="重置全部模型配置、技能、MCP 与 Dony 上下文，并重启主进程回到设置向导。此操作无法撤销。" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="清空并重置"
+                                VerticalAlignment="Center" Click="ClearAllData_Click" />
+                    </Grid>
+
+                    <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="主进程" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                                       Text="打开 STUDIO 设置会启动 intelligentSTUDIO 主进程；此处可手动启动或重启。" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="启动 / 重启"
+                                VerticalAlignment="Center" Click="RestartMainProcess_Click" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <InfoBar x:Name="Result" IsOpen="False" IsClosable="True" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>

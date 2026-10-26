@@ -1,0 +1,277 @@
+*{margin:0;padding:0;box-sizing:border-box}
+html,body,#root{width:100%;height:100%;overflow:hidden;background:transparent;font-size:16px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  user-select:none;-webkit-user-select:none}
+.overlay-container{position:relative;width:100%;height:100%;pointer-events:none}
+.overlay-container>*{pointer-events:auto}
+canvas{pointer-events:none!important}
+
+/* ===== Centered stage (shared by morph + followUp response) ===== */
+.stage-center{
+  position:fixed;top:13%;left:50%;transform:translateX(-50%);z-index:30;
+}
+
+.follow-up-response-wrap{
+  /* Sit above the morph card (same position, content inside will be on top) */
+}
+
+/* ===== FollowUp stack ===== */
+.follow-up-stack{
+  position:fixed;top:13%;left:50%;transform:translateX(-50%);z-index:30;
+  width:420px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.follow-up-stack .voice-response-box{
+  padding:10px 12px;
+}
+.follow-up-stack .card-responding{
+  width:100%;
+}
+.voice-morph-overlay{
+  z-index:40;
+}
+
+/* ===== Card with CSS transitions ===== */
+.card{
+  position:relative;
+  /* Dony 交互窗统一 90% 不透明度（另 10% 让桌面透出来） */
+  background:rgba(225,225,230,0.90);
+  backdrop-filter:blur(36px) saturate(1.2);
+  -webkit-backdrop-filter:blur(36px) saturate(1.2);
+  overflow:hidden;
+  transition:
+    width 0.45s cubic-bezier(.34,1.56,.64,1),
+    min-width 0.45s cubic-bezier(.34,1.56,.64,1),
+    max-width 0.45s cubic-bezier(.34,1.56,.64,1),
+    height 0.45s cubic-bezier(.34,1.56,.64,1),
+    border-radius 0.45s cubic-bezier(.34,1.56,.64,1),
+    padding 0.45s cubic-bezier(.34,1.56,.64,1),
+    box-shadow 0.4s ease,
+    background 0.3s ease;
+}
+
+
+
+.card-ready{
+  width:fit-content;
+  min-width:0;
+  max-width:760px;
+  height:auto;
+  /* 内边距交给药丸自身（见下方统一材质规则）：这样“首唤醒药丸”与“追问药丸”
+     的外框尺寸完全一致，不再一个 2px 6px、一个 0 */
+  padding:0;
+}
+
+/* ===== 输入药丸统一材质 =====
+   首唤醒药丸（DonyMorph input 阶段）与追问药丸共用同一套亚克力材质，避免外观漂移。
+   材质由药丸容器内部的 .dony-acrylic 层绘制（桌面快照 + 模糊 + 色调 + 噪点）；
+   追问药丸的最外层 .card-ready 只是布局壳，保持透明 —— 否则外壳与内层药丸会叠成
+   两层玻璃（更白、噪点会被叠两次）。 */
+.card-ready{
+  border-radius:999px;    /* 只做布局壳：圆角留着，免得万一被谁裁出直角 */
+  background:transparent;
+  box-shadow:none;
+  /* ⚠⚠ 必须关掉背景模糊：**非 none 的 backdrop-filter 会把本元素的全部后代
+     裁进它的 border-box（含圆角）**，而且**不受 overflow:visible 影响** ——
+     于是"追问药丸从下方 156px 飞入"的整段被裁在药丸最终下边缘那条线上，
+     圆角还跟着 .card-ready 的 999px 变成左右两个半圆 ⇒ 用户实测看到的
+     "线 + 左右两边半个圆角"那条裁切线，就是它。
+     （诊断实测：把 overflow/border-radius/clip-path/mask 全放开，圆角没了但线仍在
+       ⇒ 正好指向这条"不吃 overflow、只吃圆角"的 backdrop-filter。）
+     这里本来就是透明布局壳（材质由内层 .dony-acrylic 画），这层 blur 是多余的。 */
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+}
+.card-ready .pill-input-container,
+.card-ready .voice-pill-container,
+.dony-input-measure .pill-input-container,
+.dony-input-measure .voice-pill-container{
+  position:relative;
+  isolation:isolate;      /* 亚克力层 z-index:-1 的层叠边界 */
+  overflow:hidden;        /* 裁住亚克力层（圆角药丸） */
+  border-radius:999px;
+  --dony-radius:999px;    /* 亚克力层的 clip-path 圆角（药丸=全圆） */
+  background:transparent;
+  /* 药丸多半待在卡片内部：必须用小投影，用卡片那套大投影会被卡片切成硬边黑影。
+     极细描边由 .dony-acrylic 自己画（画在这里会被亚克力层盖住）。 */
+  box-shadow: var(--dony-pill-shadow);
+}
+
+/* ===== Dony 返回的文字可选中复制（卡片除外，卡片是「项」不是可复制的正文） ===== */
+.response-box,
+.response-box *,
+.voice-response-box,
+.voice-response-box *,
+.voice-response-morph,
+.voice-response-morph *,
+.ask-dialog,
+.ask-dialog *{
+  user-select:text;
+  -webkit-user-select:text;
+  cursor:text;
+}
+
+.card-loading{
+  width:64px;min-width:64px;max-width:64px;
+  height:64px;
+  border-radius:50%;
+  padding:0;
+  background:transparent;
+  box-shadow:none;
+  overflow:visible;
+}
+
+.card-responding{
+  /* 420 → 380：与收小后的返回框保持一致（语音 follow-up 过渡用） */
+  width:380px;min-width:380px;max-width:380px;
+  height:auto;
+  border-radius:16px;
+  padding:2px;
+  /* ⚠ 原来写死成浅色（rgba(255,255,255,.90) + 深色 ring）→ 深色系统下面板仍是白的
+     （用户实测："返回框上飞的颜色不对，需要随系统深浅色变化"）。
+     改用 acrylic.css 的主题变量：底色 var(--dony-acrylic-tint)、边缘细线 var(--dony-acrylic-edge)，
+     两者都随 prefers-color-scheme 明暗切换；环境投影保持中性即可。 */
+  background:var(--dony-acrylic-tint);
+  box-shadow:inset 0 0 0 1px var(--dony-acrylic-edge), 0 4px 24px rgba(0,0,0,.22);
+}
+
+/* ===== DonyMorph 结果区与继续输入药丸 ===== */
+/* 纵向 flex 链：正文与结果卡片共用一个滚动区（.dony-result-scroll），
+   卡片高度到顶（正方形）后整体在框内滚动。 */
+.dony-result-stack{
+  width:100%;
+  /* 22/24 → 16/18：整体收小返回框（文字与框的间距） */
+  padding:16px 18px;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+  flex:1 1 auto;
+}
+/* 滚动区：正文 + 结果卡片一起滚（结果卡片多时不会溢出卡片） */
+.dony-result-scroll{
+  display:flex;
+  flex-direction:column;
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  /* 自绘滚动条：紫色圆角细条（原生那条又宽又灰、还是直角，太丑）。
+     ⚠ 这里**绝不能**写 scrollbar-width / scrollbar-color —— Chromium 一旦看到这两个属性
+     就会完全接管滚动条，下面整套 ::-webkit-scrollbar 自绘样式会被忽略，
+     结果就是回到原生条（带上下三角按钮、直角）。只能留 ::-webkit-scrollbar 这一套。 */
+}
+.dony-result-scroll::-webkit-scrollbar{width:6px;height:6px}
+.dony-result-scroll::-webkit-scrollbar-track{background:transparent}
+.dony-result-scroll::-webkit-scrollbar-thumb{
+  background:var(--dony-scroll-thumb);
+  border-radius:999px;      /* 圆角：细条即胶囊形 */
+}
+.dony-result-scroll::-webkit-scrollbar-thumb:hover{background:var(--dony-scroll-thumb-hover)}
+/* 去掉滚动条两端的三角按钮（Chromium 默认那两个小箭头，很丑） */
+.dony-result-scroll::-webkit-scrollbar-button{display:none;width:0;height:0}
+.dony-result-scroll::-webkit-scrollbar-corner{background:transparent}
+
+/* 结果框还在长大的期间：**把滚动条宽度直接压到 0**，而不是只切 overflow。
+   只切 overflow 的话，等它切回 auto 的那一刻又会闪一下；宽度为 0 是彻底不画。
+   "长大结束"以形变动画真正结束（onAnimationComplete → .is-settled）为准，不靠猜时间。 */
+.dony-stage-result:not(.is-settled) .dony-result-scroll{overflow-y:hidden}
+.dony-stage-result:not(.is-settled) .dony-result-scroll::-webkit-scrollbar{width:0;height:0}
+.dony-result-scroll > *{
+  flex:0 0 auto;
+}
+/* 语音模式的返回框在卡片里是 .voice-response-wrapper > .voice-response-box：
+   它自身留有 55vh 上限（独立语音窗用的），这里覆盖成与结果框同一个 1:√2 上限 */
+.dony-result-scroll > .voice-response-wrapper{
+  flex:0 0 auto;
+  min-height:0;
+  display:flex;
+}
+/* 滚动统一交给 .dony-result-scroll：这里不能再自己滚，否则双层滚动打架 */
+.dony-result-scroll > .voice-response-wrapper > .voice-response-box{
+  width:100%;
+  max-height:none;
+  min-height:0;
+  flex:0 0 auto;
+  overflow-y:visible;
+}
+.dony-follow-pill{
+  /* ⚠ 这里的 auto 居中**只为语音模式那颗**（它要回到首次唤醒的位置 = 屏幕水平居中）。
+     它躺着的外壳同时带 .card-ready，而 .card-ready 是 width:fit-content ⇒ 左右 auto
+     外边距真的会把它在 .stage-center（宽 = 回答框宽度）里居中。
+     ⚠ 但这同一个类也被**键入模式**的追问框用着 ⇒ 它连带被居中了（用户实测的回归）。
+     所以按模式分开：默认（语音）居中；`.is-typing`（键入）靠左，见下一条。 */
+  margin:8px auto 0;
+}
+/* 键入模式的追问框：**靠左**，左边缘与回答框左边缘对齐。
+   .stage-center 是固定定位 + 收缩到最宽子元素（= 回答框）⇒ 它的左边缘就是回答框左边缘，
+   所以 margin-left:0 就等价于"和回答框对齐"。
+   （边界情况：追问文字长到比回答框还宽时，.stage-center 会被这颗药丸撑宽，
+     那时对齐基准会变成它自己的宽度 —— 追问是短句，实际不会碰到。） */
+.dony-follow-pill.is-typing{
+  margin:8px 0 0;
+}
+
+/* ===== 语音模式的追问：不是输入框，而是居中的小药丸按钮（灰字「继续对话」）=====
+   「从回答框居中下方一段距离向上飞入」的起点由 framer-motion 的 y:46 负责；
+   这里只负责形状、颜色与居中（width:fit-content + margin:auto →
+   在 .stage-center（宽度=回答框宽度）里水平居中 = 回答框居中下方）。 */
+.dony-follow-continue{
+  position:relative;                    /* 亚克力层是 absolute inset:0，需要定位宿主 */
+  /* 飞行带 transform → overflow+border-radius 的圆角裁剪会失效（边缘细线会变方，
+     比圆角本身更显眼）→ 用 clip-path 把胶囊钉死，材质与那条 inset 细线一起被裁圆。 */
+  clip-path:inset(0 round 999px);
+  width:fit-content;
+  margin:6px auto 0;
+  height:34px;
+  padding:0 16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  /* 材质与其他卡片完全同款：底色/模糊/边缘细线全部交给 AcrylicLayer ——
+     这里**不画 background**（画了会把磨砂盖住），也**不压掉**它的 ::after 细线。 */
+  color:var(--dony-ink-dim);            /* 灰色字 */
+  font-size:13.5px;
+  line-height:1;
+  cursor:pointer;
+  pointer-events:auto;
+  user-select:none;
+  -webkit-user-select:none;
+  transition:color 0.15s ease, filter 0.15s ease;
+}
+/* ⚠ 原来这里有一条 :hover（颜色变成 --dony-ink + brightness 1.06）——
+   用户要求"鼠标移过去不要文字高亮"，所以整条删掉。
+   保留 cursor:pointer（见上面的基础规则）作为唯一的可点击提示。 */
+.dony-follow-continue:hover{
+  /* 有意留空：不加任何悬停高亮 */
+}
+
+/* ===== Close ===== */
+.close-button{
+  position:fixed;top:16px;right:16px;z-index:50;
+  width:32px;height:32px;border-radius:50%;border:none;
+  background:var(--dony-close-bg);backdrop-filter:blur(10px);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .2s,transform .2s;pointer-events:auto;
+}
+.close-button:hover{background:var(--dony-close-bg-hover);transform:scale(1.1)}
+.close-button:active{transform:scale(.95)}
+
+.loading-circle-wrapper{width:100%;display:flex;align-items:center;justify-content:center}
+.loading-circle{width:64px;height:64px;display:flex;align-items:center;justify-content:center}
+/* 只约束这里自己的六边形：写成全局会把 DonyMorph 里组件的 size 覆盖掉，导致对齐错位 */
+.loading-circle .hexagon-svg{width:64px;height:64px}
+
+@keyframes hexSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes overlayFadeOut{0%{opacity:1}100%{opacity:0}}
+
+.dev-wake-btn{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:50;
+  padding:10px 24px;border-radius:20px;
+  border:1px solid rgba(196,77,255,.4);background:rgba(30,30,32,.7);
+  color:rgba(255,255,255,.8);font-size:14px;cursor:pointer;
+  backdrop-filter:blur(10px);transition:all .2s;
+}
+.dev-wake-btn:hover{background:rgba(196,77,255,.2);border-color:rgba(196,77,255,.7)}
+
+

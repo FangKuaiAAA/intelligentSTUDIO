@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="IntelligentStudio.Onboarding.Controls.OnboardingMedia"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="MediaRoot">
+        <!-- 圆角靠 Rectangle 自绘，图片与占位底色都能被裁到圆角内 -->
+        <Rectangle x:Name="SurfaceFill" Fill="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+
+        <MediaPlayerElement x:Name="Player" AreTransportControlsEnabled="False"
+                            Stretch="UniformToFill" Visibility="Collapsed" />
+
+        <Grid x:Name="Placeholder" Background="Transparent">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+                <FontIcon x:Name="PlaceholderIcon" FontFamily="Segoe Fluent Icons"
+                          FontSize="30" Opacity="0.5" />
+                <TextBlock x:Name="PlaceholderText" FontSize="12" Opacity="0.72"
+                           HorizontalAlignment="Center" TextAlignment="Center"
+                           TextWrapping="Wrap" MaxWidth="560" />
+            </StackPanel>
+        </Grid>
+
+        <!-- 框内时补一圈描边；描边沿圆角走，不参与内容绘制 -->
+        <Border x:Name="FrameOutline" CornerRadius="14" BorderThickness="1"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                Background="Transparent" IsHitTestVisible="False" />
+    </Grid>
+</UserControl>

@@ -1,0 +1,145 @@
+# Copyright 2022 The ml_dtypes Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# start delvewheel patch
+def _delvewheel_patch_1_13_0():
+    import os
+    if os.path.isdir(libs_dir := os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'ml_dtypes.libs'))):
+        os.add_dll_directory(libs_dir)
+
+
+_delvewheel_patch_1_13_0()
+del _delvewheel_patch_1_13_0
+# end delvewheel patch
+
+__version__ = "0.6.0"
+__all__ = [
+    "__version__",
+    "bfloat16",
+    "finfo",
+    "bcomplex32",
+    "complex32",
+    "float4_e2m1fn",
+    "float6_e2m3fn",
+    "float6_e3m2fn",
+    "float8_e3m4",
+    "float8_e4m3",
+    "float8_e4m3b11fnuz",
+    "float8_e4m3fn",
+    "float8_e4m3fnuz",
+    "float8_e5m2",
+    "float8_e5m2fnuz",
+    "float8_e8m0fnu",
+    "iinfo",
+    "int1",
+    "int2",
+    "int4",
+    "uint1",
+    "uint2",
+    "uint4",
+]
+
+from ml_dtypes._finfo import finfo
+from ml_dtypes._iinfo import iinfo
+from ml_dtypes._ml_dtypes_ext import bcomplex32
+from ml_dtypes._ml_dtypes_ext import bfloat16
+from ml_dtypes._ml_dtypes_ext import complex32
+from ml_dtypes._ml_dtypes_ext import float4_e2m1fn
+from ml_dtypes._ml_dtypes_ext import float6_e2m3fn
+from ml_dtypes._ml_dtypes_ext import float6_e3m2fn
+from ml_dtypes._ml_dtypes_ext import float8_e3m4
+from ml_dtypes._ml_dtypes_ext import float8_e4m3
+from ml_dtypes._ml_dtypes_ext import float8_e4m3b11fnuz
+from ml_dtypes._ml_dtypes_ext import float8_e4m3fn
+from ml_dtypes._ml_dtypes_ext import float8_e4m3fnuz
+from ml_dtypes._ml_dtypes_ext import float8_e5m2
+from ml_dtypes._ml_dtypes_ext import float8_e5m2fnuz
+from ml_dtypes._ml_dtypes_ext import float8_e8m0fnu
+from ml_dtypes._ml_dtypes_ext import int1
+from ml_dtypes._ml_dtypes_ext import int2
+from ml_dtypes._ml_dtypes_ext import int4
+from ml_dtypes._ml_dtypes_ext import uint1
+from ml_dtypes._ml_dtypes_ext import uint2
+from ml_dtypes._ml_dtypes_ext import uint4
+import numpy as _np
+
+bfloat16: type[_np.generic]
+float4_e2m1fn: type[_np.generic]
+float6_e2m3fn: type[_np.generic]
+float6_e3m2fn: type[_np.generic]
+float8_e3m4: type[_np.generic]
+float8_e4m3: type[_np.generic]
+float8_e4m3b11fnuz: type[_np.generic]
+float8_e4m3fn: type[_np.generic]
+float8_e4m3fnuz: type[_np.generic]
+float8_e5m2: type[_np.generic]
+float8_e5m2fnuz: type[_np.generic]
+float8_e8m0fnu: type[_np.generic]
+int1: type[_np.generic]
+int2: type[_np.generic]
+int4: type[_np.generic]
+uint1: type[_np.generic]
+uint2: type[_np.generic]
+uint4: type[_np.generic]
+bcomplex32: type[_np.generic]
+complex32: type[_np.generic]
+
+
+def real(x: _np.ndarray) -> _np.ndarray:
+  """Return the real part of a complex array.
+
+  This is a helper that uses `x.real` except for NumPy arrays of
+  bcomplex32 or complex32. NumPy cannot correctly understand that these
+  are complex dtypes as of NumPy 2.4 at least.
+
+  Args:
+    x: The input array.
+
+  Returns:
+    The real part of the input array.
+  """
+  if isinstance(x, _np.ndarray):
+    # Use a view. We add an axes to ensure it is contiguous.
+    if x.dtype.type is bcomplex32:
+      return x[..., None].view(bfloat16)[..., 0]
+    elif x.dtype.type is complex32:
+      return x[..., None].view(_np.float16)[..., 0]
+
+  # Otherwise, assume everything is OK with just using the normal `.real`
+  return x.real
+
+
+def imag(x: _np.ndarray) -> _np.ndarray:
+  """Return the imaginary part of a complex array.
+
+  This is a helper that uses `x.imag` except for NumPy arrays of
+  bcomplex32 or complex32. NumPy cannot correctly understand that these
+  are complex dtypes as of NumPy 2.4 at least.
+
+  Args:
+    x: The input array.
+
+  Returns:
+    The imaginary part of the input array.
+  """
+  if isinstance(x, _np.ndarray):
+    # Use a view. We add an axes to ensure it is contiguous.
+    if x.dtype.type is bcomplex32:
+      return x[..., None].view(bfloat16)[..., 1]
+    elif x.dtype.type is complex32:
+      return x[..., None].view(_np.float16)[..., 1]
+
+  # Otherwise, assume everything is OK with just using the normal `.imag`
+  return x.imag

@@ -1,0 +1,804 @@
+/* ============================================================
+   renderer/styles/components.css — 简洁控件与背景取样玻璃
+   ============================================================ */
+
+.liquid-cluster,
+.liquid-button {
+  position: relative;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.liquid-cluster {
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.liquid-button {
+  min-height: 36px;
+  border-radius: 999px;
+  color: #ffffff;
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ease-spring),
+    background-color 160ms ease,
+    opacity 160ms ease,
+    color 160ms ease;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.28);
+}
+
+.liquid-button[data-liquid-tone='light'] {
+  color: #111111;
+  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.28);
+}
+
+.liquid-button[data-liquid-tone='dark'] {
+  color: #ffffff;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.32);
+}
+
+.liquid-button:hover {
+  background: transparent;
+}
+
+.liquid-button:active,
+.liquid-button.is-active {
+  transform: scale(0.96);
+}
+
+.liquid-button:focus-visible,
+.titlebar-control:focus-visible,
+.setting-row input:focus-visible,
+.setting-row select:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 2px;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  font-size: 15px;
+}
+
+/* ---- Titlebar ---- */
+#toolbar-shell {
+  position: absolute;
+  inset: 0;
+  z-index: 130;
+  pointer-events: none;
+}
+
+#app.app-is-busy .titlebar-back,
+#app.app-is-busy .titlebar-control {
+  color: #f8fbff;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.32);
+}
+
+.app-titlebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--titlebar-height);
+  pointer-events: none;
+}
+
+.titlebar-drag {
+  position: absolute;
+  inset: 0 156px 0 56px;
+  pointer-events: auto;
+  -webkit-app-region: drag;
+}
+
+.titlebar-back {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  pointer-events: auto;
+  transition: opacity 160ms ease, transform 160ms var(--ease-spring);
+}
+
+#toolbar-shell[data-mode='idle'] .titlebar-back {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-6px);
+}
+
+.titlebar-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0;
+  pointer-events: auto;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-control {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    transform 150ms var(--ease-spring),
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.titlebar-control:hover {
+  background: transparent;
+}
+
+.titlebar-control:active {
+  transform: scale(0.92);
+}
+
+.titlebar-control-close:hover {
+  color: #ff453a;
+  background: transparent;
+}
+
+/* ---- Bottom Actions ---- */
+.bottom-actions {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  display: none;
+  align-items: center;
+  gap: 18px;
+  padding: 0;
+  pointer-events: auto;
+  transform: translateX(-50%);
+  -webkit-app-region: no-drag;
+}
+
+#toolbar-shell[data-mode='ready'] .bottom-actions,
+#toolbar-shell[data-mode='result'] .bottom-actions {
+  display: flex;
+}
+
+.bottom-action {
+  display: none;
+  min-width: 124px;
+  min-height: 42px;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  cursor: pointer;
+  transition:
+    transform 150ms var(--ease-spring),
+    background-color 150ms ease;
+  white-space: nowrap;
+}
+
+.bottom-action:hover,
+.bottom-action-primary:hover {
+  background: transparent;
+}
+
+.bottom-action:active {
+  transform: scale(0.96);
+}
+
+#toolbar-shell[data-mode='ready'] #btn-reset,
+#toolbar-shell[data-mode='ready'] #btn-reconstruct,
+#toolbar-shell[data-mode='result'] #btn-compare,
+#toolbar-shell[data-mode='result'] #btn-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-button .lucide {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2.1;
+}
+
+.bottom-action .liquid-glass-label {
+  width: 100%;
+  white-space: nowrap;
+}
+
+/* ---- Upload Area ---- */
+#upload-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  padding: var(--titlebar-height) 32px 32px;
+  position: relative;
+  z-index: 4;
+}
+
+.upload-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 280px);
+  min-height: 188px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+  text-align: center;
+  transition: opacity 180ms ease, transform 180ms ease;
+  -webkit-app-region: no-drag;
+}
+
+.upload-dropzone:hover:not(.is-loading),
+.upload-dropzone.drag-over:not(.is-loading) {
+  opacity: 0.78;
+  transform: translateY(-1px);
+}
+
+.upload-dropzone.is-disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.upload-dropzone.is-loading {
+  cursor: wait;
+  pointer-events: none;
+}
+
+.upload-icon {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 18px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+
+.upload-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.upload-loader {
+  width: 58px;
+  height: 58px;
+  margin-bottom: 18px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+
+.upload-loader svg {
+  width: 58px;
+  height: 58px;
+  filter: drop-shadow(0 8px 20px rgba(37, 99, 235, 0.18));
+}
+
+.upload-text {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+.upload-subtext {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.upload-meta {
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #9ca3af;
+  text-align: center;
+}
+
+/* ---- Error Toast ---- */
+#progress-container {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 64px;
+  z-index: 210;
+  width: min(420px, calc(100% - 40px));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.progress-content {
+  padding: 10px 12px;
+  color: var(--text-primary);
+}
+
+.progress-bar-fill {
+  display: none;
+}
+
+.progress-text {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.progress-message {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+/* ---- Result Layer ---- */
+#result-panel.reconstruction-result {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 34;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 360ms ease;
+}
+
+#result-panel.reconstruction-result.is-visible {
+  opacity: 1;
+}
+
+.reconstruction-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000000;
+  transition: opacity 220ms ease;
+}
+
+/* ---- Settings ---- */
+#settings-panel {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 220;
+  pointer-events: none;
+}
+
+.settings-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.42);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.settings-drawer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(540px, calc(100% - 48px));
+  max-height: min(620px, calc(100% - 56px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 20px;
+  color: #ffffff;
+  text-shadow: none;
+  opacity: 0;
+  pointer-events: auto;
+  transform: translate3d(-50%, -48%, 0) scale(0.96);
+  transform-origin: center;
+  transition:
+    opacity 180ms ease,
+    transform 200ms var(--ease-spring);
+}
+
+#app .settings-drawer.liquid-surface {
+  color: #ffffff;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.34);
+}
+
+#app[data-phase='idle'] .settings-drawer,
+#app[data-phase='idle'] .settings-drawer .liquid-button,
+#app.app-has-content .settings-drawer,
+#app.app-has-content .settings-drawer .liquid-button {
+  color: #ffffff;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.34);
+}
+
+#app[data-phase='idle'] #settings-panel .settings-drawer.liquid-surface,
+#app[data-phase='idle'] #settings-panel .settings-drawer.liquid-surface *,
+#app.app-has-content #settings-panel .settings-drawer.liquid-surface,
+#app.app-has-content #settings-panel .settings-drawer.liquid-surface * {
+  color: #ffffff;
+}
+
+#settings-panel.is-open {
+  pointer-events: auto;
+}
+
+#settings-panel.is-open .settings-backdrop {
+  opacity: 1;
+}
+
+#settings-panel.is-open .settings-drawer {
+  opacity: 1;
+  transform: translate3d(-50%, -50%, 0) scale(1);
+}
+
+#settings-panel.is-closing .settings-backdrop {
+  opacity: 0;
+}
+
+#settings-panel.is-closing .settings-drawer {
+  opacity: 0;
+  transform: translate3d(-50%, -48%, 0) scale(0.97);
+}
+
+.settings-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.settings-title {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+
+.settings-subtitle,
+.settings-note {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.settings-provider-link {
+  display: inline-flex;
+  margin-top: 2px;
+  color: #ffffff;
+  text-decoration: none;
+  text-underline-offset: 3px;
+}
+
+.settings-provider-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.settings-close {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  color: #ffffff;
+}
+
+.settings-form {
+  overflow: auto;
+  padding: 16px 18px 18px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.54) rgba(255, 255, 255, 0.12);
+}
+
+.settings-form::-webkit-scrollbar {
+  width: 8px;
+}
+
+.settings-form::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+.settings-form::-webkit-scrollbar-thumb {
+  min-height: 52px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.54);
+  background-clip: padding-box;
+}
+
+.settings-form::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.72);
+  background-clip: padding-box;
+}
+
+.settings-section {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-section h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.76);
+  letter-spacing: 0;
+}
+
+.setting-row {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.setting-row input,
+.setting-row select {
+  min-width: 0;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: none;
+  padding: 9px 14px;
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms var(--ease-spring),
+  background-color 160ms ease;
+}
+
+.setting-row input::placeholder {
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.native-select-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.custom-select {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.custom-select-button {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  box-shadow: none;
+  padding: 9px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms var(--ease-spring);
+}
+
+.custom-select-button:hover,
+.custom-select.is-open .custom-select-button {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.custom-select-button:focus-visible {
+  border-color: rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.14);
+}
+
+.custom-select-button .lucide {
+  width: 16px;
+  height: 16px;
+  transition: transform 160ms var(--ease-spring);
+}
+
+.custom-select.is-open .custom-select-button .lucide {
+  transform: rotate(180deg);
+}
+
+.custom-select-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 2;
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 14px;
+  background: transparent;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 18px 42px rgba(0, 0, 0, 0.28);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+  backdrop-filter: blur(28px) saturate(145%);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px) scale(0.98);
+  transform-origin: top;
+  transition:
+    opacity 140ms ease,
+    transform 160ms var(--ease-spring);
+}
+
+.custom-select.is-open .custom-select-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+/* Portal 状态：菜单被移到 body 下以脱离 drawer 的层叠上下文，让 backdrop-filter 生效 */
+.custom-select-menu.is-portal-open {
+  position: fixed;
+  z-index: 1000;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.custom-select-option {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #ffffff;
+  padding: 7px 9px 7px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  transition:
+    background-color 140ms ease,
+    transform 140ms var(--ease-spring);
+}
+
+.custom-select-option:hover,
+.custom-select-option.is-selected {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.custom-select-option:active {
+  transform: scale(0.98);
+}
+
+.custom-select-option .lucide {
+  width: 15px;
+  height: 15px;
+  opacity: 0;
+}
+
+.custom-select-option.is-selected .lucide {
+  opacity: 1;
+}
+
+.setting-row input:hover,
+.setting-row select:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.setting-row input:focus,
+.setting-row select:focus {
+  border-color: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 22px;
+}
+
+.settings-primary,
+.settings-secondary {
+  min-height: 42px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.32);
+}
+
+.settings-close {
+  color: #ffffff;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.32);
+}
+
+.settings-close .lucide,
+.settings-drawer .custom-select-button .lucide,
+.settings-drawer .custom-select-option .lucide {
+  color: #ffffff;
+  stroke: currentColor;
+}
+
+/* ---- Busy FX: use current image/canvas as the visual background ---- */
+.fx-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 28;
+  pointer-events: none;
+}
+
+.busy-preview {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: var(--viewer-background);
+  transition: none;
+}
+
+.fx-layer.is-busy .busy-preview {
+  opacity: 1;
+  transition: none;
+}
+
+.fx-layer.is-fading .busy-preview {
+  opacity: 0;
+  transition: opacity 460ms ease;
+}
+
+.busy-preview {
+  z-index: 1;
+  display: grid;
+  place-items: center;
+}
+
+.busy-preview canvas {
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  filter: blur(2.5px);
+  transform: scale(1.015);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-button,
+  .titlebar-control,
+  .bottom-action,
+  .busy-preview {
+    animation: none;
+    transition-duration: 1ms;
+  }
+}

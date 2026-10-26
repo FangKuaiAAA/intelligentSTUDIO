@@ -1,0 +1,13 @@
+{
+  "MCP_SERVERS": [],
+  "NOTIFY_SUMMARY_ENABLED": true,
+  "SMART_DND_ENABLED": true,
+  "OPENAI_API_BASE": "",
+  "OPENAI_API_KEY": "",
+  "OPENAI_MODEL": "",
+  "OPENAI_VISION_MODEL": null,
+  "IMAGE_API_BASE": "http://100.71.169.105:7860/sdapi/v1",
+  "IMAGE_API_KEY": "aaa",
+  "IMAGE_MODEL": "z_image_turbo_1.0_q6p.ckpt",
+  "IMAGE_PROVIDER": "auto"
+}

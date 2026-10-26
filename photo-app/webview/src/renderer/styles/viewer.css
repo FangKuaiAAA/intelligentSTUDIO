@@ -1,0 +1,44 @@
+/* ============================================================
+   renderer/styles/viewer.css — 3D 查看器样式
+   ============================================================ */
+
+#viewer-container {
+  display: none;
+  flex: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--viewer-background);
+  overflow: hidden;
+  border-radius: 0;
+  margin: 0;
+  z-index: 3;
+  transition: opacity 420ms ease;
+}
+
+#viewer-container.active {
+  display: block;
+}
+
+#viewer-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.reference-overlay-image {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+  pointer-events: none;
+  z-index: 8;
+}
+
+.reference-overlay-panel {
+  display: none !important;
+}

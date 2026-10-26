@@ -1,0 +1,82 @@
+/* ============================================================
+   renderer/styles/base.css — 全局样式
+   ============================================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-primary: #ffffff;
+  --viewer-background: #2b2928;
+  --bg-panel: rgba(255, 255, 255, 0.42);
+  --text-primary: #151716;
+  --text-secondary: rgba(21, 23, 22, 0.62);
+  --accent: #2563eb;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --error: #b42318;
+  --border: rgba(255, 255, 255, 0.35);
+  --border-strong: rgba(255, 255, 255, 0.7);
+  --glass-bg: rgba(255, 255, 255, 0.2);
+  --glass-bg-strong: rgba(255, 255, 255, 0.32);
+  --glass-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 8px 24px rgba(0, 0, 0, 0.12);
+  --window-radius: 0;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --titlebar-height: 56px;
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: "Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  -webkit-app-region: no-drag;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+#app[data-phase='idle'] {
+  justify-content: center;
+  align-items: center;
+}
+
+#app.app-has-content {
+  justify-content: flex-start;
+  align-items: stretch;
+  background: var(--viewer-background);
+}
+
+#app:not([data-phase='idle']) #upload-area {
+  display: none;
+}
+
+#app[data-phase='idle'] #viewer-container,
+#app[data-phase='idle'] #result-panel {
+  display: none !important;
+}

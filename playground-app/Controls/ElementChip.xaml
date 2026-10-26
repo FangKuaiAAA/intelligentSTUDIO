@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="ImagePlayground.Controls.ElementChip"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="Root" Margin="0,0,10,0" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+        <Grid.RenderTransform>
+            <ScaleTransform x:Name="ChipScale" ScaleX="1" ScaleY="1" />
+        </Grid.RenderTransform>
+
+        <!-- 圆形元素 -->
+        <Border x:Name="CircleHost" Width="52" Height="52" CornerRadius="26"
+                Background="#1AFFFFFF" BorderThickness="1" BorderBrush="#26FFFFFF">
+            <Border.Shadow>
+                <ThemeShadow />
+            </Border.Shadow>
+        </Border>
+
+        <!-- 文字元素：药丸形，过长省略 -->
+        <Border x:Name="PillHost" Height="34" CornerRadius="17" Padding="14,0,24,0"
+                Background="#1AFFFFFF" BorderThickness="1" BorderBrush="#26FFFFFF"
+                Visibility="Collapsed" VerticalAlignment="Center">
+            <TextBlock x:Name="Label" FontSize="12.5" MaxWidth="170"
+                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                       VerticalAlignment="Center" Foreground="{StaticResource AppTextPrimary}" />
+        </Border>
+
+        <Button x:Name="CloseButton" Width="16" Height="16" Padding="0" CornerRadius="8"
+                HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-4,0"
+                Background="#99000000" BorderThickness="0"
+                Click="OnCloseClick" ToolTipService.ToolTip="移除">
+            <FontIcon Glyph="&#xE711;" FontSize="6.5" Foreground="#F2FFFFFF" />
+        </Button>
+    </Grid>
+</UserControl>

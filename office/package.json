@@ -1,0 +1,13 @@
+{
+  "name": "intelligentstudio-office-addin",
+  "private": true,
+  "version": "1.0.0",
+  "description": "intelligentSTUDIO 的 Office 加载项：功能区命令 + 书写辅助 / 图乐园任务窗格",
+  "type": "module",
+  "scripts": {
+    "dev": "node ../node_modules/vite/bin/vite.js",
+    "build": "node ../node_modules/typescript/bin/tsc --noEmit && node ../node_modules/vite/bin/vite.js build",
+    "typecheck": "node ../node_modules/typescript/bin/tsc --noEmit",
+    "icons": "python ../scripts/make-office-icons.py"
+  }
+}

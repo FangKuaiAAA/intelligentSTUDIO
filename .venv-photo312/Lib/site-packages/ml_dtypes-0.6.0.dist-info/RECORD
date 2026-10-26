@@ -1,0 +1,16 @@
+ml_dtypes-0.6.0.dist-info/DELVEWHEEL,sha256=Xd04crSztngPcLs_MP_UwCDr_qoqDD2vcZqWNFxyl1k,408
+ml_dtypes-0.6.0.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+ml_dtypes-0.6.0.dist-info/METADATA,sha256=Nj1YIXQlm-eMYZ4xQhb8iXnlpewkUzfuI2skSUXfPwE,8820
+ml_dtypes-0.6.0.dist-info/RECORD,,
+ml_dtypes-0.6.0.dist-info/WHEEL,sha256=8VvGD5u36-DU6RfS42J0lKkRVHfll--6oSkFzWCpFTs,105
+ml_dtypes-0.6.0.dist-info/licenses/LICENSE,sha256=Pd-b5cKP4n2tFDpdx27qJSIq0d1ok0oEcGTlbtL6QMU,11560
+ml_dtypes-0.6.0.dist-info/licenses/LICENSE.eigen,sha256=kiHC-TYVm4RG0ykkn7TA8lvlEPRHODoPEzNqx5hWaKM,17099
+ml_dtypes.libs/msvcp140-a4c2229bdc2a2a630acdc095b4d86008.dll,sha256=pMIim9wqKmMKzcCVtNhgCOXD47x3cxdDVPPaT1vrnN4,575056
+ml_dtypes/__init__.py,sha256=SgT0UUMqHt1EhqK2113lj5jjtRzyfIaHQQj6mmvnI5s,4592
+ml_dtypes/__pycache__/__init__.cpython-312.pyc,,
+ml_dtypes/__pycache__/_finfo.cpython-312.pyc,,
+ml_dtypes/__pycache__/_iinfo.cpython-312.pyc,,
+ml_dtypes/_finfo.py,sha256=rgUnP3cZfKvjQ0WpqXcLV0qGpVJ48VSrQ7LoNPy6hR0,24143
+ml_dtypes/_iinfo.py,sha256=xM7FFYgpk4hRpxTOb3CmDQDzuL4RnU5Lof0FEVxxfHo,2783
+ml_dtypes/_ml_dtypes_ext.cp312-win_amd64.pyd,sha256=4cfhTT5ajK-Ao2aGDtBSA5Tzxh7qISeG3FI7Snbi1xg,1038848
+ml_dtypes/py.typed,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0

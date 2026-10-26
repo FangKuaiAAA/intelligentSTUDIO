@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>intelligentSTUDIO · 帮助</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 32px 28px 48px;
+        font: 14px/1.75 '思源黑体', 'Segoe UI', system-ui, sans-serif;
+        color: #1d1d1f;
+        background: #fbfbfd;
+        max-width: 720px;
+      }
+      h1 { font-size: 20px; margin: 0 0 4px; }
+      h2 { font-size: 14px; margin: 26px 0 6px; }
+      p, li { color: #3a3a3c; }
+      code { background: #f0f0f3; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+      .muted { color: #8e8e93; font-size: 12.5px; }
+    </style>
+  </head>
+  <body>
+    <h1>intelligentSTUDIO</h1>
+    <p class="muted">Word、Excel、PowerPoint 中的书写辅助与图乐园。</p>
+
+    <h2>功能区</h2>
+    <ul>
+      <li>「快速改写」下拉：校对、改写、友好、正式、简洁、列表、表格。选中文字后点一下即改写，可 Ctrl+Z 撤销。</li>
+      <li>「书写辅助」：打开任务窗格，先看结果再决定是否写入文档。</li>
+      <li>「图乐园」：按描述生成图片，点生成时先在光标处插入占位图，完成后原地替换。</li>
+      <li>「复原 / 预览原文 / 保留」：与窗格里的结果卡同一份状态。</li>
+    </ul>
+
+    <h2>常见问题</h2>
+    <p><strong>点了没反应。</strong>先在文档里选中文字；功能区动作需要一段可处理的文本。</p>
+    <p><strong>提示本地服务未启动。</strong>运行 <code>python backend/office_bridge.py</code>，窗格顶部的连接状态会变绿。</p>
+    <p><strong>图标空白或窗格打不开。</strong>确认加载项页由 <code>https://localhost:8769</code> 提供，且已信任本地自签名证书。</p>
+
+    <h2>隐私</h2>
+    <p>文字与文段只在本机的加载项与本地服务之间传递；只有在你点下动作时，被选中的那段文字才会发给模型接口。</p>
+  </body>
+</html>

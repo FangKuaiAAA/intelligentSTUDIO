@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="Dony.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Dony对话">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- 0：自绘标题栏（见 MainWindow.xaml.cs 的 SetupCustomTitleBar） -->
+            <RowDefinition Height="Auto" />
+            <!-- 1：连接状态条 -->
+            <RowDefinition Height="Auto" />
+            <!-- 2：内容 -->
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 自绘标题栏：打开 ExtendsContentIntoTitleBar 之后，这一条就是窗口的拖动区，
+             系统的最小化/最大化/关闭按钮仍由系统画在右上角（所以右侧要留白）。 -->
+        <Grid x:Name="AppTitleBar" Grid.Row="0" Height="40" Margin="0,0,138,0">
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="16,0,0,0"
+                        VerticalAlignment="Center">
+                <FontIcon Glyph="&#xE8BD;" FontSize="14"
+                          Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <TextBlock Text="Dony对话" FontSize="13" FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+        <InfoBar x:Name="ConnBar" Grid.Row="1" IsOpen="False" IsClosable="False"
+                 Severity="Warning" Title="无法连接到 Dony"
+                 Message="请重新运行 Dony 后再试。">
+            <InfoBar.ActionButton>
+                <Button x:Name="RetryButton" Content="重试" Click="Retry_Click" />
+            </InfoBar.ActionButton>
+        </InfoBar>
+
+        <controls:NavigationView x:Name="Nav" Grid.Row="2" PaneDisplayMode="Left"
+                                 IsBackButtonVisible="Collapsed" IsSettingsVisible="False"
+                                 OpenPaneLength="220" SelectionChanged="Nav_SelectionChanged">
+            <controls:NavigationView.MenuItems>
+                <controls:NavigationViewItem Content="对话记录" Tag="history">
+                    <controls:NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="Message" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
+                <controls:NavigationViewItem Content="朗读回答" Tag="voice">
+                    <controls:NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="Audio" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
+                <controls:NavigationViewItem Content="文件权限" Tag="files">
+                    <controls:NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="Folder" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
+            </controls:NavigationView.MenuItems>
+
+            <Frame x:Name="ContentFrame" />
+        </controls:NavigationView>
+    </Grid>
+</Window>

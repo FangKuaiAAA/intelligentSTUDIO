@@ -1,0 +1,94 @@
+.voice-pill-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.voice-pill-container {
+  display: flex;
+  align-items: center;
+  /* ⚠ 同样改成**居中**（原来 flex-start，理由与下面 .voice-chars-row 相同）。
+     这是"从中间出现、往两边扩展、新字把前面的字推向左"的前提。 */
+  justify-content: center;
+  background: transparent;           /* 白色面由 App.css 的统一药丸材质提供 */
+  border-radius: 999px;
+  /* 与打字药丸保持一致，并随返回框一起收小（14/22 → 12/20） */
+  padding: 12px 20px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.voice-text-area {
+  min-width: 48px;   /* 40 → 48：跟着 120% */
+  font-size: 16px;
+  color: var(--dony-ink-soft);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;   /* 内容居中：见 .voice-chars-row 的说明（"从中间出现、向左避让"） */
+  /* ⚠ 这里**绝对不能** overflow:hidden（曾经有）：
+     它的盒子是**直角矩形** → 逐字做 filter: blur() 时，模糊光晕被这个方框切掉，
+     于是模糊边界变成一个**很丑的正方形**（用户实测原话）。
+     裁切交给外层 .voice-pill-container（它是 border-radius:999px 的胶囊）就够了。 */
+  overflow: visible;
+}
+
+.voice-chars-row {
+  display: flex;
+  /* 默认**不换行**，也不允许被压窄：
+     药丸宽度是线性拉伸过去的，在拉到位之前容器比内容窄——如果这时能换行，
+     新字会被挤到第二行最左边（表现为“从最左端下方飞入”），行高变成两行，
+     药丸还会跟着向下长。min-width: max-content 让行永远保持内容宽度。 */
+  flex-wrap: nowrap;
+  min-width: max-content;
+  /* ⚠ **居中**（原来是 flex-start，注释里明确写着"不让它整体滑动"）。
+     那条是旧需求，已按新需求反掉：用户要的是"文字从中间出现、慢慢向两边扩展，
+     新字进来时前面的字（含正在空中的）向左避让"。
+     左对齐时新字只在右边接、前面的字一步不动 → 那条需求根本不会发生（实测确认过）。
+     改成居中后：药丸在中间长大 → 已存在的字自然被推向左 ✓ 配合每个字的 layout 平滑让位。 */
+  justify-content: center;
+  align-items: center;
+  /* 与打字输入框的行高一致，保证两种模式药丸高度相同 */
+  line-height: 1.25;
+}
+
+/* 只有文字**真的**超过安全宽度（TSX 量出来后加这个 class）才换行、向下长高。
+   ⚠ 这里**保持居中**（曾经写成 flex-start）：写成左对齐时，药丸到达宽度上限后
+   文字就贴左不动、只剩右边在长 —— 这正是用户报的"老BUG：伸长到一定程度就
+   停止向左伸长，只向右了"。保持居中：单行时继续两边对称生长，真放不下才换行向下。 */
+.voice-chars-row.wrapped {
+  flex-wrap: wrap;
+  min-width: 0;
+  justify-content: center;
+}
+
+/* 量“单行自然宽度”用的隐藏刻度：与真实文字同字体同字号，不参与布局 */
+.voice-measure {
+  position: absolute;
+  visibility: hidden;
+  white-space: pre;
+  font-size: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  pointer-events: none;
+}
+
+.voice-char {
+  white-space: pre;
+  will-change: transform, opacity;
+}
+/* 原来每个字还带一圈彩虹 text-shadow（按 7n+k 循环取色）——已按要求去掉：
+   语音飞入的文字后面不再有彩虹，就是干净的文字。 */
+
+.voice-placeholder-text {
+  color: var(--dony-ink-faint);
+  font-size: 15px;
+  pointer-events: none;
+}
+
+.voice-status-text {
+  color: var(--dony-ink-dim);
+  font-size: 13px;
+  pointer-events: none;
+}

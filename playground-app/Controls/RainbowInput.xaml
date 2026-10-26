@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="ImagePlayground.Controls.RainbowInput"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="Root" Height="48" ColumnSpacing="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <Grid x:Name="FieldHost" Grid.Column="0">
+            <!-- 彩虹层：位于输入框之下，向外弥散约 6px；宿主留出空间，避免被控件边界裁掉 -->
+            <Canvas x:Name="GlowHost" Margin="-12,-8" IsHitTestVisible="False" />
+
+            <Border x:Name="Shell" CornerRadius="10" Background="#F21B1B20"
+                    BorderThickness="1" BorderBrush="#1FFFFFFF">
+                <TextBox x:Name="Input" FontSize="14"
+                         Background="Transparent" BorderThickness="0"
+                         CornerRadius="9" Padding="16,12,16,12"
+                         VerticalAlignment="Stretch" VerticalContentAlignment="Center"
+                         UseSystemFocusVisuals="False"
+                         PlaceholderText="描述画面"
+                         KeyDown="Input_KeyDown"
+                         TextChanged="Input_TextChanged"
+                         GotFocus="Input_GotFocus"
+                         LostFocus="Input_LostFocus">
+                    <!-- 触碰与聚焦都不改变底色，边框与外发光由外层 Shell 与彩虹层负责 -->
+                    <TextBox.Resources>
+                        <SolidColorBrush x:Key="TextControlBackground" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBorderBrush" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBorderBrushDisabled" Color="Transparent" />
+                    </TextBox.Resources>
+                </TextBox>
+            </Border>
+        </Grid>
+
+        <!-- 发送按钮独立成圆形，放在输入框外侧；箭头朝上并居中 -->
+        <Button x:Name="SendButton" Grid.Column="1" Width="44" Height="44" Padding="0"
+                CornerRadius="22" Background="#12FFFFFF" BorderThickness="1" BorderBrush="#1FFFFFFF"
+                Style="{StaticResource PillButtonStyle}"
+                Click="Send_Click" ToolTipService.ToolTip="添加文字">
+            <!-- 字形由图标字体按行盒居中，避免手绘 Path 在按钮里的光学校偏 -->
+            <FontIcon Glyph="&#xE74A;" FontSize="15" Foreground="#E6FFFFFF"
+                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Button>
+    </Grid>
+</UserControl>

@@ -1,0 +1,90 @@
+.ask-dialog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  padding: 26px 28px 24px;
+  box-sizing: border-box;
+}
+
+.ask-text {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--dony-ink);
+  text-align: center;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.ask-buttons {
+  display: flex;
+  gap: 16px;
+}
+
+.ask-btn {
+  min-width: 128px;
+  height: 44px;
+  border-radius: 22px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.16s ease-out, filter 0.16s ease-out;
+}
+
+.ask-btn:hover { filter: brightness(1.05); }
+.ask-btn:active { transform: scale(0.96); }
+
+.ask-btn.allow {
+  background: var(--dony-invert-bg);
+  color: var(--dony-invert-ink);
+}
+
+.ask-btn.deny {
+  background: var(--dony-control);
+  color: var(--dony-ink);
+}
+
+.ask-input-pill {
+  min-width: 220px;
+  max-width: 100%;
+  height: 44px;
+  border-radius: 22px;
+  background: var(--dony-control);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+  transition: width 0.2s ease;
+}
+
+.ask-click-pill {
+  border: none;
+  font-size: 14px;
+  color: var(--dony-ink-faint);
+  font-family: inherit;
+  cursor: pointer;
+  justify-content: center;
+  transition: transform 0.16s ease-out, background 0.16s ease-out;
+}
+
+.ask-click-pill:hover { background: var(--dony-control-hover); }
+.ask-click-pill:active { transform: scale(0.97); }
+
+.ask-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--dony-ink);
+}
+
+.ask-input::placeholder { color: var(--dony-ink-faint); }

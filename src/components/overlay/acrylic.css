@@ -1,0 +1,189 @@
+/* ==========================================================================
+   Dony 亚克力材质（Acrylic）——向 Windows 11 原生亚克力对齐
+   --------------------------------------------------------------------------
+   为什么用「桌面快照」而不是 backdrop-filter：
+     Windows 的亚克力由 DWM 在**窗口**一级合成，模糊的是窗口背后的桌面；
+     而 Chromium 的 backdrop-filter 只能取**本窗口内**已绘制的画面。Dony 的
+     覆盖层是整屏透明窗，窗口里没有可模糊的东西 → 直接写 backdrop-filter
+     只会得到「半透明白」（现状）。所以这里把「唤醒瞬间的桌面快照」放进卡片
+     自己内部，用 filter: blur() 去模糊它 —— 于是真的能看见桌面被磨砂。
+
+   三层结构（对应微软官方亚克力配方：模糊 → 排他混合 → 色调 → 噪点）：
+     .dony-acrylic-snap     桌面快照 + 模糊（背景钉在屏幕上，卡片动它不动）
+     .dony-acrylic-tint     色调层（亮/暗两套，跟随系统应用模式）
+     .dony-acrylic-exclusion 排他混合层（保证其上的文字对比度）
+     .dony-acrylic-noise    噪点层（一眼分辨真假的关键，原生亚克力必有）
+   ========================================================================== */
+
+/* 亮色（跟随 Win11「应用模式」= prefers-color-scheme） */
+:root {
+  /* 亚克力面板：能明显看到被模糊的壁纸，同时文字依然清楚。
+     ⚠ 这个值就是"磨砂看不看得见"的唯一旋钮，实测过：
+       0.80 → 壁纸只剩 20% 透出，看起来就是一块实心色板（磨砂"消失"）；
+       0.50 → 各占一半，磨砂清晰可见。
+     注意壁纸本身如果是深色的，亮/暗两套都要往"能透出 50%"这个量级走，否则就是
+     深色压深色 / 白色盖白色，纹理一律看不见。 */
+  --dony-acrylic-tint: rgba(250, 250, 250, 0.82);
+  --dony-acrylic-noise: 0.028;
+  /* 边缘：跟 Windows 标准窗口一样的**极细浅灰线**。
+     颜色不能太淡（9% 在浅色玻璃上肉眼看不见）。 */
+  --dony-acrylic-edge: rgba(0, 0, 0, 0.20);
+  /* 阴影：照 Windows 标准窗口那种"贴着卡片、收拢"的观感
+     （原来 60px 大扩散在浅色桌面上几乎看不出来） */
+  --dony-acrylic-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.20),
+    0 2px 8px rgba(0, 0, 0, 0.12);
+  /* 药丸专用的小投影：药丸常常待在卡片内部，用卡片那套投影会被卡片裁出一圈黑影 */
+  --dony-pill-shadow: 0 2px 10px rgba(0, 0, 0, 0.10);
+
+  --dony-ink: #1b1b1d;              /* 主文字 */
+  --dony-ink-soft: #555;            /* 正文里稍柔的文字（语音药丸） */
+  --dony-ink-dim: #86868b;          /* 次要文字（处理中提示等） */
+  --dony-ink-faint: rgba(0, 0, 0, 0.35);
+  --dony-control: rgba(0, 0, 0, 0.05);        /* 药丸/输入底的浅色块 */
+  --dony-control-hover: rgba(0, 0, 0, 0.09);
+  --dony-invert-ink: #fff;          /* 反色按钮文字 */
+  --dony-invert-bg: #1d1d1f;        /* 反色按钮底 */
+  /* 自绘滚动条：紫色圆角细条（系统原生那条又宽又灰，很丑） */
+  --dony-scroll-thumb: rgba(196, 77, 255, 0.38);
+  --dony-scroll-thumb-hover: rgba(196, 77, 255, 0.62);
+  --dony-input-surface: rgba(255, 255, 255, 0.6);
+  --dony-close-bg: rgba(255, 255, 255, 0.15);
+  --dony-close-bg-hover: rgba(255, 255, 255, 0.3);
+}
+
+/* 深色（跟随 Win11「应用模式」，即 prefers-color-scheme）：深 tint + 浅文字 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 同亮色：0.86 / 0.70 都会把磨砂盖掉（深色壁纸时尤其彻底），取 0.50 */
+    --dony-acrylic-tint: rgba(28, 28, 30, 0.90);
+    --dony-acrylic-noise: 0.036;     /* 原生深色亚克力的噪点更明显 */
+    /* 深色窗口那条极细的浅灰线（比亮色下更明显） */
+    --dony-acrylic-edge: rgba(255, 255, 255, 0.20);
+    --dony-acrylic-shadow:
+      0 10px 30px rgba(0, 0, 0, 0.48),
+      0 2px 8px rgba(0, 0, 0, 0.32);
+    --dony-pill-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+
+    --dony-ink: #f5f5f7;
+    --dony-ink-soft: #c7c7cc;
+    --dony-ink-dim: #a1a1a6;
+    --dony-ink-faint: rgba(255, 255, 255, 0.42);
+    --dony-control: rgba(255, 255, 255, 0.09);
+    --dony-control-hover: rgba(255, 255, 255, 0.15);
+    --dony-invert-ink: #1b1b1d;
+    --dony-invert-bg: #f5f5f7;
+    --dony-scroll-thumb: rgba(196, 77, 255, 0.46);
+    --dony-scroll-thumb-hover: rgba(196, 77, 255, 0.72);
+    --dony-input-surface: rgba(60, 60, 64, 0.55);
+    --dony-close-bg: rgba(255, 255, 255, 0.1);
+    --dony-close-bg-hover: rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* ===== 亚克力层本体：绝对铺满宿主（卡片/药丸），由宿主的 overflow 裁切 ===== */
+.dony-acrylic {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  /* z-index:-1 让亚克力层落在「宿主背景之上、宿主内容之下」：
+     这样宿主里的文字/图标一律不用改，天然盖在材质上面。
+     前提是宿主建立了自己的层叠上下文（isolation:isolate 或非 auto 的 z-index），
+     否则 -1 会穿透到宿主背后去。 */
+  z-index: -1;
+  isolation: isolate;
+  /* ⚠ 这里不要加 transform/will-change 之类的"提升合成层"：
+     Chromium 上「overflow:hidden + border-radius + transform」会让圆角裁剪失效，
+     表现就是深色下圆角处出现白线、黑影被直角硬切。filter 本身已经自成一层，
+     性能上不需要再手动提升。
+
+     宿主（卡片）自己带 framer-motion 的 transform（animate y），所以它的
+     overflow:hidden 圆角裁剪同样会失效 —— 这里用 clip-path 再裁一道：
+     clip-path 不受祖先 transform 影响，圆角一定对得上。
+     --dony-radius 由宿主给出（卡片按形变阶段的圆角、药丸给 999px）。 */
+  clip-path: inset(0 round var(--dony-radius, 28px));
+  -webkit-clip-path: inset(0 round var(--dony-radius, 28px));
+}
+
+/* 极细的浅灰描边：必须**单独成层并放到最上面**。
+   两个坑都踩过：
+     · 画在宿主（卡片）上 → 亚克力层是负 z-index，整层盖住它；
+     · 画在本层自己的 box-shadow 上 → tint/noise 这些 position:absolute 但没有
+       z-index 的子层，按 CSS 绘制顺序画在父的 inset 阴影之上，照样盖住。
+   这里用 ::after + z-index，保证它压在快照/色调/噪点之上。 */
+.dony-acrylic::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--dony-acrylic-edge);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ---- 1) 桌面快照 + 模糊 ----
+   尺寸按视口（100vw×100vh）而不是百分比：vw/vh 不受祖先 transform 影响，
+   无论卡片怎么形变/位移，快照都严格等于整块屏幕 → 与显示器像素一一对应。
+   （快照是物理像素、视口是 DIP，两者同一台显示器 → 等比，不会变形；
+     副屏比例不同也不怕：主进程已按 display_id 只抓覆盖层所在的那块屏。） */
+.dony-acrylic-snap {
+  position: absolute;
+  /* ⚠ 尺寸只做「宿主 + 模糊出血」，**不能做成整屏**：
+     模糊成本 ≈ 面积 × 半径，实测整屏（1440×900）比这个小尺寸贵约 8 倍
+     （同一段回车上移：max 49ms vs 12ms）。
+     （另外"唤醒时把模糊烤进底图"那条路也试过并回退了：canvas 渲染 + JPEG 编码是
+       同步的几十毫秒主线程阻塞，正好压在唤醒那一刻 → 每次唤醒光边都卡一回。） */
+  --dony-acrylic-bleed: calc(var(--dony-acrylic-blur, 30px) + 12px);
+  inset: calc(-1 * var(--dony-acrylic-bleed));
+  background-repeat: no-repeat;
+  /* 铺法由 AcrylicLayer 按"底图真实像素 vs 视口"算好：
+     比例一致 → 100vw×100vh（与屏幕逐像素对应）；不一致 → 等比放大后的绝对尺寸（不变形）。 */
+  background-size: var(--dony-snap-size, 100vw 100vh);
+  /* ⚠ 钉屏必须用 background-position，**不能**用 transform 平移这一层。
+     因为这块元素只有「宿主+出血」这么大（约 472×137）。transform 平移是"把整块元素
+     挪到屏幕坐标"，一旦它比屏幕小，挪过去就跑到宿主视野之外了 →
+     宿主里什么都画不出来 = 亚克力看起来"没有磨砂"（这个坑踩过）。
+     正确做法：元素留在宿主位置，只把**底图**按屏幕坐标偏移：
+     元素左上角在屏幕上是 (dcx - bleed, dcy - bleed)，所以底图原点应落在
+     元素内的 (bleed - dcx, bleed - dcy)；--dony-snap-dx/dy 是不等比时的居中修正。
+     （只有"整屏大小的元素"才适合用 transform 钉屏。） */
+  background-position:
+    calc(var(--dony-acrylic-bleed) - var(--dcx, 0px) + var(--dony-snap-dx, 0px))
+    calc(var(--dony-acrylic-bleed) - var(--dcy, 0px) + var(--dony-snap-dy, 0px));
+  /* 形变飞行期间会被临时调小（卡片上设 --dony-blur-scale=0.35，见 DonyMorph）：
+     filter 是亚克力唯一的成本大头，而宿主形变时每帧都要重做一次模糊光栅。
+     用 calc 乘子而不是直接改 --dony-acrylic-blur，是为了不动各宿主自己的档位。 */
+  filter: blur(calc(var(--dony-acrylic-blur, 30px) * var(--dony-blur-scale, 1))) saturate(1.8);
+  opacity: 0;
+  /* filter 一起过渡：飞行期间调小、结束后回到 100% 时不会有"忽然变清晰"的跳变 */
+  transition: opacity 0.24s ease-out, filter 0.25s ease-out;
+}
+.dony-acrylic-snap.is-ready { opacity: 1; }
+
+/* ---- 2) 色调层：亚克力的"颜色"，亮/暗两套 ---- */
+.dony-acrylic-tint {
+  position: absolute;
+  inset: 0;
+  background: var(--dony-acrylic-tint);
+}
+
+/* ---- 3) 排他混合层：微软配方里保证文字对比度的那一层 ---- */
+.dony-acrylic-exclusion {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(0, 0, 0, 0.07));
+  mix-blend-mode: exclusion;
+  opacity: 0.6;
+}
+
+/* ---- 4) 噪点层：原生亚克力一定有极细颗粒，缺了就会显得"像塑料" ---- */
+.dony-acrylic-noise {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+  opacity: var(--dony-acrylic-noise);
+  mix-blend-mode: overlay;
+}

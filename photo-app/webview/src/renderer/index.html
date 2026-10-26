@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' file: blob: data: sharp-viewer: https:; connect-src 'self' blob: data: sharp-viewer: https:; worker-src 'self' blob:;" />
+  <title>照片重构</title>
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/components.css" />
+  <link rel="stylesheet" href="styles/viewer.css" />
+  <style>
+    /* 嵌入 WinUI 后标题栏与设置由宿主提供，页面内的窗口控件全部隐藏 */
+    #btn-back,
+    #btn-settings,
+    #btn-minimize,
+    #btn-maximize,
+    #btn-close {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/app.ts"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# 照片编辑器推理服务的独立依赖（不写入 backend/requirements.txt，避免影响语音与通知后端）
+# 安装：python -m venv .venv-photo && .venv-photo\Scripts\pip install -r backend/photo/requirements.txt
+fastapi>=0.110.0
+uvicorn>=0.29.0
+numpy>=1.24.0
+pillow>=10.2.0
+onnxruntime>=1.18.0
+# 可选：想在核显 / AMD / NVIDIA 上加速时改用 DirectML 包（会替换 onnxruntime，
+# 因此必须装在独立虚拟环境里，不要装进主 backend 环境）
+# onnxruntime-directml>=1.18.0

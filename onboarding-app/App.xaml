@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Application
+    x:Class="IntelligentStudio.Onboarding.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <controls:XamlControlsResources />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Apple Intelligence 多彩渐变：只用于占位媒体与强调细线，不做大面积铺色 -->
+            <LinearGradientBrush x:Key="RainbowBrush" StartPoint="0,0.5" EndPoint="1,0.5">
+                <GradientStop Color="#FF0A84FF" Offset="0" />
+                <GradientStop Color="#FFBF5AF2" Offset="0.4" />
+                <GradientStop Color="#FFFF375F" Offset="0.7" />
+                <GradientStop Color="#FFFF9F0A" Offset="1" />
+            </LinearGradientBrush>
+
+            <!-- 媒体占位底色：画在 Border 上，圆角由 Border 自己裁，不依赖合成裁剪 -->
+            <LinearGradientBrush x:Key="PlaceholderWashBrush" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#1F0A84FF" Offset="0" />
+                <GradientStop Color="#1FBF5AF2" Offset="0.42" />
+                <GradientStop Color="#1FFF375F" Offset="0.72" />
+                <GradientStop Color="#1FFF9F0A" Offset="1" />
+            </LinearGradientBrush>
+
+            <Style x:Key="OnboardingCardStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="14" />
+                <Setter Property="Padding" Value="16" />
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            </Style>
+
+            <Style x:Key="OnboardingTitleStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Segoe UI Variable Display" />
+                <Setter Property="FontSize" Value="24" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+
+            <Style x:Key="OnboardingSecondaryStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="LineHeight" Value="19" />
+            </Style>
+
+            <!-- 标题栏上的「上一步」与关闭：半透明底，压在媒体上也看得清 -->
+            <Style x:Key="ChromeButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Height" Value="32" />
+                <Setter Property="CornerRadius" Value="10" />
+                <Setter Property="Padding" Value="12,0" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Background" Value="{ThemeResource ControlFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+
+            <Style x:Key="PrimaryActionButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
+                <Setter Property="MinWidth" Value="128" />
+                <Setter Property="Height" Value="36" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="FontSize" Value="13" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

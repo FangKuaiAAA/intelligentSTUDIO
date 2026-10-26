@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="IntelligentStudio.Onboarding.Views.ModelStepPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer Padding="32,76,32,8" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="18">
+
+            <Grid ColumnSpacing="16" MaxWidth="760" HorizontalAlignment="Left">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Image x:Name="StepIcon" Width="44" Height="44" VerticalAlignment="Top" Stretch="Uniform" />
+                <StackPanel Grid.Column="1" Spacing="6">
+                    <TextBlock x:Name="TitleText" Style="{StaticResource OnboardingTitleStyle}" />
+                    <TextBlock x:Name="DescText" Style="{StaticResource OnboardingSecondaryStyle}" FontSize="13" />
+                </StackPanel>
+            </Grid>
+
+            <Grid ColumnSpacing="14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- 主模型 -->
+                <Border Grid.Column="0" Style="{StaticResource OnboardingCardStyle}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="主模型" FontSize="14" FontWeight="SemiBold" />
+                        <TextBox x:Name="MainBaseBox" Header="接口地址"
+                                 PlaceholderText="https://api.deepseek.com" />
+                        <PasswordBox x:Name="MainKeyBox" Header="API 密钥" PlaceholderText="sk-…"
+                                     PasswordRevealMode="Peek" />
+                        <TextBox x:Name="MainModelBox" Header="模型名称"
+                                 PlaceholderText="deepseek-v4-flash" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 视觉模型 -->
+                <Border Grid.Column="1" Style="{StaticResource OnboardingCardStyle}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="视觉模型" FontSize="14" FontWeight="SemiBold" />
+                        <TextBox x:Name="VisionBaseBox" Header="接口地址" PlaceholderText="留空沿用主模型" />
+                        <PasswordBox x:Name="VisionKeyBox" Header="API 密钥" PlaceholderText="留空沿用主模型"
+                                     PasswordRevealMode="Peek" />
+                        <TextBox x:Name="VisionModelBox" Header="模型名称" PlaceholderText="留空沿用主模型" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 图像模型 -->
+                <Border Grid.Column="2" Style="{StaticResource OnboardingCardStyle}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="图像模型" FontSize="14" FontWeight="SemiBold" />
+                        <TextBox x:Name="ImageBaseBox" Header="接口地址"
+                                 PlaceholderText="https://api.openai.com" />
+                        <PasswordBox x:Name="ImageKeyBox" Header="API 密钥" PlaceholderText="sk-…"
+                                     PasswordRevealMode="Peek" />
+                        <TextBox x:Name="ImageModelBox" Header="模型名称" PlaceholderText="gpt-image-1" />
+                        <ComboBox x:Name="ImageProviderBox" Header="接口协议" HorizontalAlignment="Stretch">
+                            <ComboBoxItem Content="自动识别" Tag="auto" />
+                            <ComboBoxItem Content="OpenAI 兼容" Tag="openai" />
+                            <ComboBoxItem Content="通义万相" Tag="dashscope" />
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <!-- 编辑模型 -->
+                <Border Grid.Column="3" Style="{StaticResource OnboardingCardStyle}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="编辑模型" FontSize="14" FontWeight="SemiBold" />
+                        <TextBox x:Name="EditBaseBox" Header="接口地址" PlaceholderText="留空沿用图像模型" />
+                        <PasswordBox x:Name="EditKeyBox" Header="API 密钥" PlaceholderText="留空沿用图像模型"
+                                     PasswordRevealMode="Peek" />
+                        <TextBox x:Name="EditModelBox" Header="模型名称" PlaceholderText="FLUX.1-Fill-dev" />
+                        <ComboBox x:Name="EditProviderBox" Header="接口协议" HorizontalAlignment="Stretch">
+                            <ComboBoxItem Content="自动识别" Tag="auto" />
+                            <ComboBoxItem Content="FLUX Fill" Tag="filledit" />
+                            <ComboBoxItem Content="OpenAI 兼容" Tag="openai" />
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <TextBlock Style="{StaticResource OnboardingSecondaryStyle}" MaxWidth="760"
+                       HorizontalAlignment="Left"
+                       Text="主模型为 Dony、视觉智能与书写辅助提供对话能力；图像模型用于图乐园，编辑模型用于照片编辑器。" />
+
+            <InfoBar x:Name="Result" IsOpen="False" IsClosable="True" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

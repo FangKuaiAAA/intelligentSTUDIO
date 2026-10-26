@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="Dony.Controls.GlowChatBox"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <!--
+      ⚠ 彩虹与「加载光边」已**整体移除**（需求："去掉输入框上的所有彩虹和加载光边"）：
+        GlowChatBox.xaml.cs 的 GlowEnabled = false 会让 SetupComposition 直接早退，
+        于是 GlowHost 上不会挂任何 Composition 视觉（彩虹四层、光边两档都不创建、动画不启动）。
+        这里的 GlowHost 元素与其层次位置**保留**（代码仍引用它；它现在什么都不画，零开销）。
+        想恢复：把 GlowEnabled 改回 true，把 Root 的 Padding 调回 22（那是给光扩散留的画布余量）。
+      现在的层次（自下而上）：
+        磨砂面（Pill：半透明底 + 顶亮底暗的 1px 边 + 柔和投影）
+        内容（输入框 / 发送按钮）
+        状态提示（StatusText，始终占位以免布局跳动）
+    -->
+    <!-- Padding 原来是给彩虹 / 加载光边扩散留的**画布余量**；辉光已整体移除（见 GlowChatBox.xaml.cs
+         的 GlowEnabled），留着它只会让胶囊四周空出 22px（看起来像"输入框缩水"），所以归零。 -->
+    <Grid x:Name="Root" Padding="0" Loaded="Root_Loaded" SizeChanged="Root_SizeChanged"
+          Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Composition 层（彩虹 + 加载光边）挂在这上面；它在胶囊之前，于是被磨砂面遮住内圈 -->
+        <Grid x:Name="GlowHost" Grid.RowSpan="2" IsHitTestVisible="False" />
+
+        <!-- 输入框本体：磨砂胶囊面 -->
+        <Border x:Name="Pill" Grid.Row="0" VerticalAlignment="Center" MinHeight="54"
+                CornerRadius="27" BorderThickness="1" Background="Transparent">
+            <Grid Padding="18,0,8,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox x:Name="Input" Grid.Column="0" BorderThickness="0" Background="Transparent"
+                         FontSize="14" VerticalAlignment="Center"
+                         PlaceholderText="与 Dony 对话"
+                         KeyDown="Input_KeyDown" />
+
+                <Button x:Name="SendButton" Grid.Column="1" Click="Send_Click" Margin="6,6,6,6"
+                        CornerRadius="16" MinWidth="76" Style="{ThemeResource AccentButtonStyle}">
+                    <Grid>
+                        <TextBlock x:Name="SendText" Text="发送" />
+                        <ProgressRing x:Name="SendRing" Width="16" Height="16" IsActive="False"
+                                      Visibility="Collapsed" />
+                    </Grid>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- 加载状态提示：放在胶囊外，避免撑高胶囊；始终占位（只用空文字）以免布局跳动 -->
+        <TextBlock x:Name="StatusText" Grid.Row="1" Margin="8,6,8,0" FontSize="12" Opacity="0.72"
+                   TextTrimming="CharacterEllipsis" />
+    </Grid>
+</UserControl>

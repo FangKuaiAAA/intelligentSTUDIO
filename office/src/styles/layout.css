@@ -1,0 +1,164 @@
+/* 窗格骨架：固定身份条（40px）+ 可滚动内容 + 贴底输入区 */
+
+.st-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+}
+
+/* ---- 身份条 ---- */
+.st-identity {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  flex: 0 0 var(--st-identity-h);
+  height: var(--st-identity-h);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: color-mix(in srgb, var(--st-bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--st-hairline);
+}
+
+.st-identity-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.st-identity-spacer {
+  flex: 1 1 auto;
+  min-width: 4px;
+}
+
+.st-host-pill {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  color: var(--st-text-2);
+  padding: 2px 7px;
+  border-radius: var(--st-r-pill);
+  border: 1px solid var(--st-hairline);
+  background: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
+.st-back {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--st-text-2);
+  transition: background var(--st-t-in) var(--st-ease-out), color var(--st-t-in) var(--st-ease-out);
+}
+
+.st-back:active {
+  transform: scale(0.94);
+}
+
+/* ---- 内容区 ---- */
+.st-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.st-body--flush {
+  padding-bottom: 4px;
+}
+
+/* ---- 卡片 ---- */
+.st-card {
+  background: var(--st-card);
+  border: 1px solid var(--st-hairline);
+  border-radius: 12px;
+  box-shadow: var(--st-shadow);
+  padding: 10px 12px;
+}
+
+.st-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--st-text-2);
+  letter-spacing: 0.02em;
+  margin-bottom: 6px;
+}
+
+.st-card-body {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--st-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.st-card-body--clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.st-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 8px;
+  text-align: center;
+  color: var(--st-text-2);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+/* ---- 贴底输入区 ---- */
+.st-footer {
+  flex: 0 0 auto;
+  padding: 8px 12px 10px;
+  background: linear-gradient(180deg, rgba(251, 251, 253, 0), var(--st-bg) 38%);
+}
+
+.st-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.st-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ---- 窄窗格（Office 允许拖到 280）---- */
+@media (max-width: 340px) {
+  .st-body {
+    padding: 10px 8px;
+    gap: 8px;
+  }
+  .st-footer {
+    padding: 6px 8px 8px;
+  }
+  .st-identity {
+    padding: 0 8px;
+  }
+  .st-host-pill {
+    display: none;
+  }
+}

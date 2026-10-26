@@ -1,0 +1,660 @@
+/* ==========================================================================
+   书写辅助（选区改写）
+   --------------------------------------------------------------------------
+   材质一律复用 Dony 那套：主体卡片走 <AcrylicLayer/>（桌面快照 + 模糊 + 色调 +
+   噪点 + 极细灰线 + 收拢投影，变量见 acrylic.css）。**不写 backdrop-filter** ——
+   覆盖层是整屏透明窗，窗口里没有可模糊的东西，它只会得到"半透明白"外加每帧成本。
+   颜色全部走变量，明暗两套由 prefers-color-scheme 切换。
+   ========================================================================== */
+
+:root {
+  --wt-accent: #0A84FF;
+  --wt-bar-bg: rgba(246, 246, 248, 0.94);
+  --wt-bar-ink: #1b1b1d;
+  --wt-bar-edge: rgba(0, 0, 0, 0.10);
+  --wt-hover: rgba(127, 127, 127, 0.16);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --wt-bar-bg: rgba(44, 44, 46, 0.94);
+    --wt-bar-ink: #f5f5f7;
+    --wt-bar-edge: rgba(255, 255, 255, 0.14);
+    --wt-hover: rgba(255, 255, 255, 0.14);
+  }
+}
+
+@keyframes wtHexSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes wtScanSweep {
+  from { background-position: 160% 0; }
+  to { background-position: -60% 0; }
+}
+
+/* ---------- 标签小框（选区开头）----------
+   形状 = 圆角本体 + 右中凸点，全部由 CSS 画（见下面的 .wt-tag-bubble）。
+   底色是主题色，不描边、不半透明。
+   按钮本体比可见气泡大一圈（不可见热区，尺寸见 SelectionTag.tsx 的 TAG_HIT）。 */
+.wt-tag {
+  position: fixed;
+  z-index: 60;
+  display: block;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* 不可见"接点击"层：铺满整个热区，alpha 约 1/255。
+   透明窗口的命中测试是按像素 alpha 做的 —— 完全透明的区域点击会穿透，
+   所以这一层必须存在，否则"热区"只在主进程的判定里有效、系统不认。
+   0.4% 的白肉眼不可辨。
+   ⚠ 它不能挂在按钮本体上：按钮上的 filter 会把这一层一起做成阴影（出现一个灰方块），
+   所以阴影挪到了下面的 .wt-tag-bubble 上。 */
+.wt-tag-hit {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.004);
+  pointer-events: none;
+}
+
+/* ---------- 气泡：CSS 正统写法 ----------
+   本体是圆角矩形，凸点用**旋转 45° 的同色方块**（::after）实现：
+     · 与本体同色（background: inherit）→ 接缝天然消失，不需要任何遮挡技巧；
+     · 方块绕自身中心旋转，其右顶点落在"本体右边缘 + 半对角线"处，
+       半对角线 = 边长/√2，所以外伸量由 --wt-tag-tail-box 反推（见 SelectionTag.tsx）；
+     · 给方块一点圆角，顶点就是圆钝的（与参考图一致）；
+     · 方块的另外三个角都埋在本体里，不参与外观。
+   为什么不用另两种常见写法：
+     · border 三角形（border-left 实色 + 上下 transparent）：尖角永远是直角，
+       做不出参考图那种圆钝尖端，而且斜边靠抗锯齿、在高分屏上会发虚；
+     · clip-path: path()：形状最准，但会把抗锯齿边缘一起切掉，
+       且阴影必须先画再裁，写起来也最繁琐。
+   ⚠ 这里绝不能给本体加 overflow:hidden —— 凸点正是在本体之外。 */
+.wt-tag-bubble {
+  position: absolute;
+  /* display:flex 让图案在本体里居中。⚠ 居中是相对**本体**（不含凸点），
+     若按"本体+凸点"居中，图案会明显偏右。伪元素是 absolute，不参与这个 flex 布局。 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* ⚠ 只有左边两个角圆，右侧必须是一条**完整的直边**：
+     三角形的底边就是这条直边（高 100%）。右角要是也圆了，三角形在上下两个角
+     会露到圆角之外，看起来就是"三角形和方块又分开了"。 */
+  border-radius: var(--wt-tag-radius, 5px) 0 0 var(--wt-tag-radius, 5px);
+  background: var(--wt-tag-bg, #2b6ef3);
+  pointer-events: none;
+}
+
+/* 尖角 = 同色旋转方块，**边长取到"贴住本体右缘那一点的宽度正好等于 21px"**：
+   方块绕自身中心转 45° 后是一条"菱形"，它在水平中心处的竖直跨度 = 边长 × √2。
+   把方块中心压在本体右边缘上，这个跨度就正好是可见三角形的底边 —— 取 边长 × √2 = 21，
+   即边长 ≈ 15px，于是"三角形底边 = 正方形侧边"严格成立，两个图形严丝合缝拼成一个箭头。
+   （边长取小了就会出现"方块旁边挂个小三角"，接缝处还差一截 —— 上一版就是 13。）
+   用旋转方块而不是 clip-path 三角形：只有它能顺便把**尖端磨圆**（border-radius），
+   而 clip-path 会把圆角一起切掉。 */
+.wt-tag-bubble::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  /* 右移半个边长：方块中心正好压在本体右边缘上（钻石最宽处 = 本体侧边） */
+  right: calc(var(--wt-tag-tail-box, 15px) / -2);
+  width: var(--wt-tag-tail-box, 15px);
+  height: var(--wt-tag-tail-box, 15px);
+  margin-top: calc(var(--wt-tag-tail-box, 15px) / -2);
+  background: inherit;
+  border-radius: 3px;
+  transform: rotate(45deg);
+}
+
+/* 图案永远保持白色（参考图里那枚就是白的），不随主题反色 ——
+   反色只作用于输入框里那一枚（见 .wt-input-icon）。 */
+.wt-tag-bubble > svg {
+  color: #fff;
+  flex: 0 0 auto;
+  /* ⚠ 图案必须压在凸点之上。凸点是 ::after（与本体同色），而图案按 22px 画在 18px
+     的本体里 —— 右半边会伸到本体外、正好被同色方块盖住，看起来就像"只画了左边几条边"。
+     z-index 只在同一层叠上下文里比较，这里给个相对定位就够。 */
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- 选区彩虹扫描 ---------- */
+/* ⚠ 必须写成 `.overlay-container > .wt-scan`：
+   App.css 里有一条 `.overlay-container>*{pointer-events:auto}`（0,1,1），
+   单写 `.wt-scan`（0,1,0）压不过它 —— 那一层会变成全屏吃鼠标的透明罩。 */
+.wt-scan,
+.overlay-container > .wt-scan {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+}
+
+.wt-scan-row {
+  position: fixed;
+  display: block;
+  border-radius: 3px;
+  opacity: 0.62;
+  /* 半透明彩虹横扫：两端透明，中间是完整的产品彩虹配色带 */
+  background: linear-gradient(100deg,
+    rgba(255, 107, 157, 0) 0%,
+    rgba(255, 107, 157, 0.55) 12%,
+    rgba(196, 77, 255, 0.60) 30%,
+    rgba(77, 138, 255, 0.60) 48%,
+    rgba(77, 255, 217, 0.55) 66%,
+    rgba(255, 216, 77, 0.50) 84%,
+    rgba(255, 107, 157, 0) 100%);
+  background-size: 300% 100%;
+  animation: wtScanSweep 1.15s linear infinite;
+}
+
+/* ---------- 修改选择框 ---------- */
+.wt-menu {
+  position: fixed;
+  z-index: 62;
+  /* 定位与尺寸由组件内联给出（left/top/width 固定），动画只做 transform，
+     不再动布局属性 —— 命中矩形从第一帧起就是完整大小。 */
+  pointer-events: auto;
+}
+
+/* 气泡尾巴（SVG，见 WriteMenu 里的说明）：
+   与卡片同底色/同透明度，细线只在**外侧两条边**上；压在卡片之下，左端被卡片盖住，
+   于是"相接处没有线"，整体连成一体。 */
+.wt-menu-tail {
+  position: absolute;
+  top: 50%;
+  margin-top: -14px;
+  /* 15px：尖端再外移 1px 的同时，仍保证压进卡片约 4px（用材质把卡片右缘那道细线盖住） */
+  width: 15px;
+  height: 28px;
+  pointer-events: none;
+  /* 压在卡片之上：3px 的重叠用来盖住卡片右缘那道细线 */
+  z-index: 3;
+}
+
+/* 材质层：与卡片同一个 AcrylicLayer，只在这里被裁成三角形 */
+.wt-menu-tail-fill {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+/* 细线单独一层（不被裁）：只含外侧两条斜边，相接处没有线 */
+.wt-menu-tail-line {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* 左向：尾巴在卡片右侧，左移 3px 压进卡片 */
+/* 再向卡片外移 2px（合计 -13） */
+.wt-menu[data-dir='left'] .wt-menu-tail { right: -13px; }
+/* 右向：镜像 */
+.wt-menu[data-dir='right'] .wt-menu-tail { left: -13px; transform: scaleX(-1); }
+
+/* 按住「预览原文」：原文盖在选区原处，松手撤掉（完全不写文档） */
+.wt-preview-original {
+  position: fixed;
+  z-index: 64;
+  padding: 4px 6px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: rgba(18, 18, 20, 0.94);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  pointer-events: none;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* 处理中：整卡变淡并停止接收点击（此时用户该看的是横框） */
+.wt-menu.is-busy { pointer-events: none; }
+.wt-menu.is-busy .wt-menu-inner { opacity: 0.5; }
+
+.wt-menu-card {
+  position: relative;
+  isolation: isolate;
+  border-radius: 22px;
+  --dony-radius: 22px;
+  /* 材质由 <AcrylicLayer/> 铺；宿主只留收拢型投影（与 Dony 卡片同一套变量） */
+  box-shadow: var(--dony-acrylic-shadow);
+  overflow: hidden;
+}
+
+.wt-menu-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 10px 8px;
+  transition: opacity 0.18s ease-out;
+}
+
+.wt-menu-sep {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--dony-acrylic-edge);
+  opacity: 0.7;
+}
+
+/* 顶部彩虹流光输入框：复用 rainbow.css 的 .rb-pill + .rb-pill-surface，
+   按需求不启用 .rb-edge 沿边框加载光边。 */
+/* ⚠ 必须写到 .wt-input.rb-pill 这一级（两段选择器）：
+   rainbow.css 里的 .rb-pill 带 height:100%，与单类选择器同权时由打包顺序决定胜负，
+   结果是这条 44px 被盖掉、输入框塌成一条扁线。
+   写成双类后特异性更高，顺序怎么变都稳。 */
+.wt-input.rb-pill {
+  position: relative;
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  padding: 0 14px 0 42px;
+  margin-bottom: 10px;
+  border-radius: 22px;
+}
+
+/* 输入框的磨砂面：不透明度对齐"视觉智能框选后的彩虹框"那种"明显是一块实面"的观感。
+   ⚠ 这里**不能**直接改 var(--dony-input-surface) —— 那是 Dony 药丸在用的变量，
+   改它会波及 Dony（用户明确要求禁止动 Dony），所以在本组件里显式给值。
+   覆盖层里 backdrop-filter 取不到桌面（见 acrylic.css 开头），只用半透明面。 */
+.wt-input .rb-pill-surface {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: inset 0 0 0 1px var(--dony-acrylic-edge);
+}
+
+@media (prefers-color-scheme: dark) {
+  .wt-input .rb-pill-surface { background: rgba(58, 58, 62, 0.80); }
+}
+
+.wt-input-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  z-index: 3;
+}
+
+.wt-input-icon img {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+/* 图案原图是白色的：深色磨砂面上正好看得见；浅色模式下白底白图会消失，
+   所以浅色模式把它反成黑色纯色（只影响这一枚，标签里那枚始终白色）。 */
+@media (prefers-color-scheme: light) {
+  .wt-input-icon img { filter: brightness(0); }
+}
+
+.wt-input-field {
+  position: relative;
+  z-index: 3;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--dony-ink);
+  font-size: 14px;
+  font-family: inherit;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.wt-input-field::placeholder { color: var(--dony-ink-dim); }
+
+/* 两列大按钮（校对 / 改写） */
+.wt-big-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.wt-big {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 64px;
+  border: none;
+  border-radius: 14px;
+  background: var(--dony-control);
+  color: var(--dony-ink);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.12s ease;
+}
+
+/* 需求：鼠标移上去不要任何样式变化（含菜单项、横框按钮、标签） */
+.wt-big:hover { background: var(--dony-control); }
+.wt-big:active { transform: scale(0.98); }
+.wt-big:disabled { opacity: 0.45; cursor: default; }
+.wt-big-label { font-size: 14px; font-weight: 500; }
+
+/* 列表项 */
+.wt-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--dony-ink);
+  font-family: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+/* 菜单项移入不变色（删掉 hover 规则即等于与常态一致） */
+.wt-item:active { background: var(--dony-control-hover); }
+.wt-item:disabled { opacity: 0.45; cursor: default; }
+
+.wt-item-icon {
+  display: flex;
+  justify-content: center;
+  width: 18px;
+  color: var(--dony-ink-soft);
+}
+
+.wt-item-label { flex: 1; }
+
+/* ---------- 横框（确定 / 撤回）---------- */
+.wt-bar {
+  position: fixed;
+  z-index: 63;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 0 8px;
+  border-radius: 22px;
+  pointer-events: auto;
+  color: var(--wt-bar-ink);
+  background: var(--wt-bar-bg);
+  box-shadow:
+    inset 0 0 0 1px var(--wt-bar-edge),
+    0 8px 22px rgba(0, 0, 0, 0.22);
+}
+
+/* ---------- 横框的加载光边（模型回答期间）---------- */
+/* 数值全部照搬 rainbow-loading-pill（横框固定 420×44、圆角 22 → 光边画布外扩 60px）。
+   ① 容器：向卡片外扩 room，模糊才有地方扩散
+   ② 四层：同一条虚线，只分模糊半径与粗细
+   ③ 粗细随长度联动：圆头态 --rb-w-wide、长边态 --rb-w-band（数值与原实现一致） */
+.wt-bar-edge {
+  position: absolute;
+  inset: -60px;
+  pointer-events: none;
+  opacity: 0;
+  /* 淡出比淡入慢：消失时不要抢眼 */
+  transition: opacity 220ms ease-out;
+}
+
+.wt-bar-edge.is-active {
+  opacity: 1;
+  /* 淡入干脆一点 */
+  transition: opacity 110ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.wt-bar-edge svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.wt-bar-edge path {
+  fill: none;
+  stroke: #fff;
+  stroke-linecap: round;
+  /* 关键帧由 BarEdge 按真实路径长度注入（同名覆盖）；这里是兜底 */
+  animation: wtBarEdgePulse 3s linear infinite;
+}
+
+/* 粗细/浓度完全对齐视觉智能：四层同一条虚线、按层递减；整条光带浓度统一 .5 */
+.wt-bar-edge g > path {
+  opacity: 0.5;
+}
+
+.wt-bar-edge .rb-e1 { --rb-w-band: 0.263px; --rb-w-wide: 4px; }
+.wt-bar-edge .rb-e2 { --rb-w-band: 0.595px; --rb-w-wide: 9px; }
+.wt-bar-edge .rb-e3 { --rb-w-band: 0.92px; --rb-w-wide: 14px; }
+.wt-bar-edge .rb-e4 { --rb-w-band: 1.38px; --rb-w-wide: 21px; }
+
+/* ---------- 选区的紫色一次性提示（1s 淡入 80% 再淡出）---------- */
+.wt-flash {
+  position: fixed;
+  z-index: 55;
+  border-radius: 3px;
+  background: rgba(150, 90, 255, 0.8);
+  pointer-events: none;
+}
+
+/* ---------- 修改面板里的彩虹：转慢一些（原 12s） ---------- */
+.wt-input { --rb-rainbow-duration: 26s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wt-bar-edge path { animation-duration: 6s; }
+  .wt-bar-edge { transition-duration: 0ms; }
+}
+
+.wt-bar-revert {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 15px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+/* 需求：鼠标移上去不要任何样式变化。「复原」直接以原 hover 态作为常态。 */
+.wt-bar-revert,
+.wt-bar-revert:hover { background: var(--wt-hover); }
+.wt-bar-revert:active { transform: scale(0.97); }
+
+.wt-bar-label {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wt-bar-label.is-note { color: #FF453A; font-weight: 400; }
+
+.wt-bar-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.12s ease;
+}
+
+/* 「预览原文」同理：以原 hover 态为常态，移入不再变化 */
+.wt-bar-preview,
+.wt-bar-preview:hover { background: var(--wt-hover); }
+
+/* 按下反馈：**只有横框按钮**做小幅高亮。
+   鼠标移入仍然完全没有变化；这一条由后端"物理按下"事件驱动（见 writing-click）。 */
+.wt-bar button.is-pressed {
+  filter: brightness(1.35);
+  /* 内描边比单纯提亮更"看得见"：横框按钮底色是半透明的，提亮几乎察觉不到 */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+.wt-bar-preview:active { transform: scale(0.94); }
+.wt-bar-preview:disabled { opacity: 0.32; cursor: default; }
+
+.wt-bar-keep {
+  height: 30px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 15px;
+  background: var(--wt-accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.12s ease, transform 0.12s ease;
+}
+
+/* 「保留」移入不变亮 */
+.wt-bar-keep:active { transform: scale(0.97); }
+.wt-bar-keep:disabled { opacity: 0.4; cursor: default; }
+
+/* 按住预览原文的浮层：悬在横框上方。
+   pointer-events:none 是必需的 —— 否则指针一移上去就离开按钮，浮层会立刻消失。 */
+.wt-preview {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--wt-bar-bg);
+  box-shadow:
+    inset 0 0 0 1px var(--wt-bar-edge),
+    0 10px 26px rgba(0, 0, 0, 0.24);
+  color: var(--wt-bar-ink);
+  pointer-events: none;
+}
+
+.wt-preview-title {
+  margin-bottom: 6px;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--dony-ink-dim);
+}
+
+.wt-preview-body {
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* ---------- 减少动态偏好 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .wt-scan-row { animation: none; opacity: 0.45; }
+}
+
+/* ---------- 左侧竖居中面板（摘要 / 要点 / 创作） ----------
+   位置用 flex 竖居中（**不用** transform：framer 的 x 动画会覆盖它）。
+   外层 pointer-events:none，只有卡片接点击 —— 面板外面不该吃鼠标。 */
+.wt-side {
+  /* 位置由内联样式给：left = 选区左侧、top/height = 以选区竖直中心为中线的带。
+     ⚠ 不要用 top:0;bottom:0 铺满整屏 —— 那是"按屏幕居中"，用户要的是"按选区居中"
+     （与修改面板一致）。 */
+  width: 360px;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.wt-side .wt-menu-card {
+  pointer-events: auto;
+  width: 100%;
+  max-height: 70vh;
+}
+
+.wt-side-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 14px 12px;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.wt-side-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--dony-ink-dim);
+}
+
+.wt-side-body {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--dony-ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.wt-side-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.wt-side-btn {
+  height: 30px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 9px;
+  background: var(--wt-hover);
+  color: var(--dony-ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.wt-side-btn:disabled { opacity: 0.4; cursor: default; }
+.wt-side-primary { background: var(--dony-accent, #2b6ef3); color: #fff; }
+.wt-side-quiet { margin-left: auto; background: transparent; color: var(--dony-ink-dim); }
+
+/* 按下反馈：**整个按钮表面**提亮（横框与新面板统一）。
+   用 background-image 叠一层半透明白：不管按钮本来是透明、还是主题色填充，
+   都能整片压亮，且不改变布局。 */
+.wt-bar button.is-pressed,
+.wt-side-btn.is-pressed {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.34));
+}
+
+/* 左侧面板竖直居中兜底：外层用 flex 居中，卡片再 auto margin 一次，
+   避免父级高度/滚动容器变化时贴到顶部。 */
+.wt-side > .wt-menu-card {
+  margin: auto 0;
+}

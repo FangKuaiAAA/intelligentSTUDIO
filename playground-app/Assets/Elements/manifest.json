@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "pages": [
+    {
+      "page": 1, "title": "场景", "items": [
+        { "id": "p1_01", "name": "城市", "prompt": "城市", "file": "p1_01.png" },
+        { "id": "p1_02", "name": "沙漠", "prompt": "沙漠", "file": "p1_02.png" },
+        { "id": "p1_03", "name": "森林", "prompt": "森林", "file": "p1_03.png" },
+        { "id": "p1_04", "name": "灯塔", "prompt": "灯塔", "file": "p1_04.png" },
+        { "id": "p1_05", "name": "高山", "prompt": "高山", "file": "p1_05.png" },
+        { "id": "p1_06", "name": "公园", "prompt": "公园", "file": "p1_06.png" },
+        { "id": "p1_07", "name": "太空", "prompt": "太空", "file": "p1_07.png" },
+        { "id": "p1_08", "name": "体育场", "prompt": "体育场", "file": "p1_08.png" },
+        { "id": "p1_09", "name": "舞台", "prompt": "舞台", "file": "p1_09.png" },
+        { "id": "p1_10", "name": "火山", "prompt": "火山", "file": "p1_10.png" },
+        { "id": "p1_11", "name": "雨林", "prompt": "雨林", "file": "p1_11.png" },
+        { "id": "p1_12", "name": "草原", "prompt": "草原", "file": "p1_12.png" }
+      ]
+    },
+    {
+      "page": 2, "title": "主题", "items": [
+        { "id": "p2_01", "name": "探险", "prompt": "探险", "file": "p2_01.png" },
+        { "id": "p2_02", "name": "生日", "prompt": "生日", "file": "p2_02.png" },
+        { "id": "p2_03", "name": "迪斯科", "prompt": "迪斯科", "file": "p2_03.png" },
+        { "id": "p2_04", "name": "奇幻", "prompt": "奇幻", "file": "p2_04.png" },
+        { "id": "p2_05", "name": "烟花", "prompt": "烟花", "file": "p2_05.png" },
+        { "id": "p2_06", "name": "爱", "prompt": "爱心", "file": "p2_06.png" },
+        { "id": "p2_07", "name": "繁星之夜", "prompt": "繁星之夜", "file": "p2_07.png" },
+        { "id": "p2_08", "name": "夏天", "prompt": "夏天", "file": "p2_08.png" },
+        { "id": "p2_09", "name": "派对", "prompt": "派对", "file": "p2_09.png" },
+        { "id": "p2_10", "name": "春天", "prompt": "春天", "file": "p2_10.png" },
+        { "id": "p2_11", "name": "科幻", "prompt": "科幻", "file": "p2_11.png" },
+        { "id": "p2_12", "name": "日落", "prompt": "日落", "file": "p2_12.png" }
+      ]
+    },
+    {
+      "page": 3, "title": "表情", "items": [
+        { "id": "p3_01", "name": "大笑", "prompt": "大笑表情", "file": "p3_01.png" },
+        { "id": "p3_02", "name": "开心", "prompt": "开心表情", "file": "p3_02.png" },
+        { "id": "p3_03", "name": "生气", "prompt": "生气表情", "file": "p3_03.png" },
+        { "id": "p3_04", "name": "伤心", "prompt": "伤心表情", "file": "p3_04.png" },
+        { "id": "p3_05", "name": "震惊", "prompt": "震惊表情", "file": "p3_05.png" },
+        { "id": "p3_06", "name": "爱", "prompt": "爱心眼表情", "file": "p3_06.png" },
+        { "id": "p3_07", "name": "思考", "prompt": "思考表情", "file": "p3_07.png" },
+        { "id": "p3_08", "name": "赞", "prompt": "点赞表情", "file": "p3_08.png" }
+      ]
+    },
+    {
+      "page": 4, "title": "角色", "items": [
+        { "id": "p4_01", "name": "艺术家", "prompt": "艺术家", "file": "p4_01.png" },
+        { "id": "p4_02", "name": "宇航员", "prompt": "宇航员", "file": "p4_02.png" },
+        { "id": "p4_03", "name": "厨师", "prompt": "厨师", "file": "p4_03.png" },
+        { "id": "p4_04", "name": "农民", "prompt": "农民", "file": "p4_04.png" },
+        { "id": "p4_05", "name": "徒步者", "prompt": "徒步者", "file": "p4_05.png" },
+        { "id": "p4_06", "name": "赛车手", "prompt": "赛车手", "file": "p4_06.png" },
+        { "id": "p4_07", "name": "机器人", "prompt": "机器人", "file": "p4_07.png" },
+        { "id": "p4_08", "name": "皇室", "prompt": "皇室", "file": "p4_08.png" },
+        { "id": "p4_09", "name": "科学家", "prompt": "科学家", "file": "p4_09.png" },
+        { "id": "p4_10", "name": "超级英雄", "prompt": "超级英雄", "file": "p4_10.png" },
+        { "id": "p4_11", "name": "巫师", "prompt": "巫师", "file": "p4_11.png" },
+        { "id": "p4_12", "name": "吸血鬼", "prompt": "吸血鬼", "file": "p4_12.png" }
+      ]
+    },
+    {
+      "page": 5, "title": "配饰", "items": [
+        { "id": "p5_01", "name": "棒球帽", "prompt": "棒球帽", "file": "p5_01.png" },
+        { "id": "p5_02", "name": "毛线帽", "prompt": "毛线帽", "file": "p5_02.png" },
+        { "id": "p5_03", "name": "贝雷帽", "prompt": "贝雷帽", "file": "p5_03.png" },
+        { "id": "p5_04", "name": "蝴蝶结", "prompt": "蝴蝶结", "file": "p5_04.png" },
+        { "id": "p5_05", "name": "花环", "prompt": "花环", "file": "p5_05.png" },
+        { "id": "p5_06", "name": "安全帽", "prompt": "安全帽", "file": "p5_06.png" },
+        { "id": "p5_07", "name": "派对帽", "prompt": "派对帽", "file": "p5_07.png" },
+        { "id": "p5_08", "name": "盆栽", "prompt": "盆栽", "file": "p5_08.png" },
+        { "id": "p5_09", "name": "太阳镜", "prompt": "太阳镜", "file": "p5_09.png" },
+        { "id": "p5_10", "name": "围巾", "prompt": "围巾", "file": "p5_10.png" },
+        { "id": "p5_11", "name": "吸汗带", "prompt": "吸汗带", "file": "p5_11.png" },
+        { "id": "p5_12", "name": "礼帽", "prompt": "礼帽", "file": "p5_12.png" }
+      ]
+    }
+  ]
+}

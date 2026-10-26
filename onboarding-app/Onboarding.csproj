@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>IntelligentStudio.Onboarding</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <!-- 非打包（免 MSIX）+ 自包含（免安装 Windows App SDK 运行时），与 settings-app 保持一致 -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Onboarding</AssemblyName>
+    <ApplicationIcon>..\assets\icons\intelligentSTUDIO.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250205002" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 与 STUDIO 设置共用同一套配置读写与扩展安装实现，避免两份逻辑漂移 -->
+    <Compile Include="..\settings-app\Services\SettingsStore.cs" Link="Services\SettingsStore.cs" />
+    <Compile Include="..\settings-app\Services\ExtensionInstallService.cs" Link="Services\ExtensionInstallService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\assets\icons\*.ico" Link="%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\assets\icons\*.png" Link="%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- 引导页媒体：素材补齐后直接放进 assets\onboarding 即可，无需改代码 -->
+    <Content Include="..\assets\onboarding\**\*" Link="onboarding\%(RecursiveDir)%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

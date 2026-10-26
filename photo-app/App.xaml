@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Application
+    x:Class="PhotoEditor.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    RequestedTheme="Dark">
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <controls:XamlControlsResources />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Apple Intelligence 五色：红 / 紫 / 黄 / 蓝 / 粉。除彩虹外不再引入第二种强调色 -->
+            <LinearGradientBrush x:Key="RainbowBrush" StartPoint="0,0.5" EndPoint="1,0.5">
+                <GradientStop Color="#FFFF453A" Offset="0" />
+                <GradientStop Color="#FFBF5AF2" Offset="0.26" />
+                <GradientStop Color="#FFFFD60A" Offset="0.5" />
+                <GradientStop Color="#FF0A84FF" Offset="0.74" />
+                <GradientStop Color="#FFFF375F" Offset="1" />
+            </LinearGradientBrush>
+
+            <SolidColorBrush x:Key="AppTextPrimary" Color="#FFFFFFFF" />
+            <SolidColorBrush x:Key="AppTextSecondary" Color="#FFB4B4BB" />
+            <SolidColorBrush x:Key="AppTextTertiary" Color="#FF7A7A82" />
+            <SolidColorBrush x:Key="AppStrokeSubtle" Color="#1AFFFFFF" />
+            <SolidColorBrush x:Key="AppFillSubtle" Color="#12FFFFFF" />
+            <SolidColorBrush x:Key="AppFillRaised" Color="#1CFFFFFF" />
+            <!-- 蓝：仅用于进度与主操作 -->
+            <SolidColorBrush x:Key="AppAccentBlue" Color="#FF0A84FF" />
+            <!-- 画布：比窗口更暗，让照片成为唯一亮面 -->
+            <SolidColorBrush x:Key="AppCanvasFill" Color="#4D000000" />
+
+            <Style x:Key="PanelTitleStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{StaticResource AppTextPrimary}" />
+            </Style>
+
+            <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{StaticResource AppTextSecondary}" />
+                <Setter Property="Margin" Value="0,0,0,8" />
+            </Style>
+
+            <Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Foreground" Value="{StaticResource AppTextSecondary}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+
+            <Style x:Key="TertiaryTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="11" />
+                <Setter Property="Foreground" Value="{StaticResource AppTextTertiary}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+
+            <Style x:Key="GlassCardStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="16" />
+                <Setter Property="Background" Value="{StaticResource AppFillSubtle}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="BorderBrush" Value="{StaticResource AppStrokeSubtle}" />
+            </Style>
+
+            <!-- 实心卡片：重构面板不再用半透明玻璃观感 -->
+            <SolidColorBrush x:Key="AppFillSolid" Color="#FF1B1B1E" />
+
+            <Style x:Key="CardStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Background" Value="{StaticResource AppFillSolid}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="BorderBrush" Value="#1FFFFFFF" />
+            </Style>
+
+            <Style x:Key="OutlinePillButtonStyle" TargetType="Button" BasedOn="{StaticResource PillButtonStyle}">
+                <Setter Property="Background" Value="{StaticResource AppFillSolid}" />
+                <Setter Property="Foreground" Value="{StaticResource AppTextPrimary}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="BorderBrush" Value="#2EFFFFFF" />
+                <Setter Property="FontWeight" Value="Normal" />
+                <Setter Property="Height" Value="36" />
+            </Style>
+
+            <!-- 主操作按钮：蓝底、胶囊形、按下用叠加层与轻微缩放做反馈 -->
+            <Style x:Key="PillButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="{StaticResource AppAccentBlue}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="Height" Value="40" />
+                <Setter Property="Padding" Value="20,0" />
+                <Setter Property="CornerRadius" Value="20" />
+                <Setter Property="FontSize" Value="13.5" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Root" Background="{TemplateBinding Background}"
+                                  CornerRadius="{TemplateBinding CornerRadius}" RenderTransformOrigin="0.5,0.5">
+                                <Grid.RenderTransform>
+                                    <ScaleTransform x:Name="RootScale" ScaleX="1" ScaleY="1" />
+                                </Grid.RenderTransform>
+                                <Border x:Name="Stroke" CornerRadius="{TemplateBinding CornerRadius}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        Background="Transparent" />
+                                <Border x:Name="Overlay" CornerRadius="{TemplateBinding CornerRadius}"
+                                        Background="#FFFFFFFF" Opacity="0" />
+                                <ContentPresenter Content="{TemplateBinding Content}"
+                                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  Margin="{TemplateBinding Padding}" />
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Overlay" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="PointerOver">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Overlay" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.10" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Overlay" Storyboard.TargetProperty="Opacity" To="0.22" Duration="0:0:0.08" />
+                                                <DoubleAnimation Storyboard.TargetName="RootScale" Storyboard.TargetProperty="ScaleX" To="0.97" Duration="0:0:0.08" />
+                                                <DoubleAnimation Storyboard.TargetName="RootScale" Storyboard.TargetProperty="ScaleY" To="0.97" Duration="0:0:0.08" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Root" Storyboard.TargetProperty="Opacity" To="0.4" Duration="0:0:0.16" />
+                                            </Storyboard>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="GlassPillButtonStyle" TargetType="Button" BasedOn="{StaticResource PillButtonStyle}">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <!-- 毛玻璃：真实模糊，不透明度比纯色 #1AFFFFFF 更高，
+                             在深色画布上仍能看清按钮边界 -->
+                        <AcrylicBrush TintColor="#FFFFFF" TintOpacity="0.18"
+                                      TintLuminosityOpacity="0.4" FallbackColor="#2E2E34" />
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Foreground" Value="{StaticResource AppTextPrimary}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="BorderBrush" Value="#26FFFFFF" />
+                <Setter Property="FontWeight" Value="Normal" />
+                <Setter Property="Height" Value="36" />
+                <Setter Property="Padding" Value="16,0" />
+                <Setter Property="CornerRadius" Value="18" />
+                <Setter Property="FontSize" Value="12.5" />
+            </Style>
+
+            <Style x:Key="GlyphIconButtonStyle" TargetType="Button" BasedOn="{StaticResource GlassPillButtonStyle}">
+                <Setter Property="Width" Value="32" />
+                <Setter Property="Height" Value="32" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="CornerRadius" Value="16" />
+                <Setter Property="Background" Value="#12FFFFFF" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
+
+            <!-- 裸按钮：仅承载内容 -->
+            <Style x:Key="BareButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <ContentPresenter Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- 左侧工具栏项：内容为竖排「线描图标 + 名称」，选中时半透明高亮 + 底部彩虹短条 -->
+            <Style x:Key="RailNavItemStyle" TargetType="RadioButton">
+                <Setter Property="Height" Value="44" />
+                <Setter Property="Margin" Value="8,2" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Grid Background="Transparent">
+                                <!-- 选中高亮由左栏统一的覆盖层负责滑动，这里只保留 hover -->
+                                <Border x:Name="Hover" CornerRadius="8" Background="#0FFFFFFF" Opacity="0" />
+                                <ContentPresenter Content="{TemplateBinding Content}"
+                                                  HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                                                  HorizontalContentAlignment="Left"
+                                                  VerticalContentAlignment="Center"
+                                                  Padding="12,0,16,0" />
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="PointerOver">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                            </Storyboard>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                    <VisualStateGroup x:Name="CheckStates">
+                                        <VisualState x:Name="Checked" />
+                                        <VisualState x:Name="Unchecked" />
+                                        <VisualState x:Name="Indeterminate" />
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- 分段选择：比例、引擎等互斥选项。用 RadioButton 让互斥由框架保证，
+                 不再依赖 Click 里手动收敛 IsChecked（那套在预览未就绪等路径上会漏执行）。 -->
+            <Style x:Key="SegmentItemStyle" TargetType="RadioButton">
+                <Setter Property="Height" Value="30" />
+                <Setter Property="MinWidth" Value="50" />
+                <Setter Property="Padding" Value="10,0" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Foreground" Value="{StaticResource AppTextSecondary}" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Grid>
+                                <Border x:Name="Highlight" CornerRadius="8" Background="#26FFFFFF" Opacity="0" />
+                                <Border x:Name="Hover" CornerRadius="8" Background="#12FFFFFF" Opacity="0" />
+                                <ContentPresenter Content="{TemplateBinding Content}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  Margin="{TemplateBinding Padding}" />
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="PointerOver">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                            </Storyboard>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                    <VisualStateGroup x:Name="CheckStates">
+                                        <VisualState x:Name="Checked">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Highlight" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Unchecked">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Highlight" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Indeterminate" />
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="DonySettings.Views.McpSkillPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer Padding="20,12,20,20">
+        <StackPanel Spacing="14" MaxWidth="720" HorizontalAlignment="Left">
+
+            <TextBlock Text="Dony MCP 与 Skill" Style="{StaticResource DonyTitleStyle}" />
+            <TextBlock Style="{StaticResource DonySecondaryStyle}" FontSize="13"
+                       Text="MCP 让 Dony 调用外部工具与服务；Skill 为 Dony 增加专门技能。" />
+
+            <!-- MCP 服务器 -->
+            <Border Style="{StaticResource DonyCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="MCP 服务器" FontWeight="SemiBold" FontSize="15" />
+
+                    <ListView x:Name="McpList" SelectionMode="None" IsItemClickEnabled="False">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                        <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                                                   Text="{Binding Command}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="移除" Click="Remove_Click" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <TextBlock x:Name="McpEmpty" Style="{StaticResource DonySecondaryStyle}"
+                               Text="尚未添加 MCP 服务器。" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="添加服务器" Style="{ThemeResource AccentButtonStyle}"
+                                Click="Add_Click" />
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                               Text="服务器随 STUDIO 启动，并自动接入可用工具；更改列表后需重启 STUDIO。" />
+                </StackPanel>
+            </Border>
+
+            <!-- Dony Skill -->
+            <Border Style="{StaticResource DonyCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Dony Skill" FontWeight="SemiBold" FontSize="15" />
+                    <TextBlock x:Name="SkillsStatus" Style="{StaticResource DonySecondaryStyle}"
+                               Text="正在读取技能列表…" />
+
+                    <ListView x:Name="SkillsList" SelectionMode="None" IsItemClickEnabled="False">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                        <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                                                   Text="{Binding Description}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                                               Style="{StaticResource DonySecondaryStyle}"
+                                               Text="{Binding Id}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <TextBlock x:Name="SkillsEmpty" Style="{StaticResource DonySecondaryStyle}"
+                               Visibility="Collapsed"
+                               Text="目录中没有技能。每个技能放在一个子文件夹中，并提供 SKILL.md。" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="刷新列表" Click="RefreshSkills_Click" />
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource DonySecondaryStyle}"
+                               Text="Skill 以文件夹形式存放在以下位置。新增或删除技能即时生效；更改目录后需重启 STUDIO。" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBox x:Name="SkillsDirBox" MinWidth="360" MaxWidth="420"
+                                 LostFocus="SkillsDir_LostFocus" />
+                        <Button Content="打开目录" Click="OpenSkillsDir_Click" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

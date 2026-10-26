@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>PhotoEditor</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <!-- 非打包（免 MSIX）+ 自包含（免安装 Windows App SDK 运行时），与 dony-app / settings-app / playground-app 一致 -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- 像素缓冲通过 COM 接口直接读写，需要 unsafe -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>PhotoEditor</AssemblyName>
+    <ApplicationIcon>..\assets\icons\照片智能编辑器.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250205002" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
+    <!-- WebView2 由 Windows App SDK 1.6 传递引入（1.0.2651.64），不再显式引用以免版本降级 -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 窗口图标：运行时由 AppWindow.SetIcon 读取输出目录下的 ico -->
+    <Content Include="..\assets\icons\照片智能编辑器.ico" Link="照片智能编辑器.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- 重构场景：three.js 本地页面（photo.local 虚拟主机指向本目录） -->
+    <Content Include="Assets\Viewer\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,202 @@
+/* 彩虹药丸 + 加载光边（移植自 rainbow-loading-pill skill）
+   层次（自下而上）：.rb-edge 光边 z0 → .rb-pill::before 彩虹底层 z-1 → .rb-pill-surface 磨砂面 z1 → 内容 z3 */
+
+.rb-slot {
+  --rb-bleed: 2px;
+  --rb-room: 60px;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.rb-pill {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  isolation: isolate;
+  background: transparent;
+  overflow: visible;
+  z-index: 2;
+}
+
+.rb-pill-surface {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 彩虹：conic-gradient 旋转 + 模糊，左上到右下缓慢漂移的观感由旋转与模糊叠加形成 */
+.rb-pill::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--rb-rainbow-angle),
+    rgba(255, 50, 60, .75),
+    rgba(180, 50, 255, .7),
+    rgba(30, 60, 200, .6),
+    rgba(255, 220, 50, .65),
+    rgba(255, 140, 30, .6),
+    rgba(255, 50, 60, .75)
+  );
+  animation: rbRainbowFlow var(--rb-rainbow-duration, 12s) linear infinite;
+  pointer-events: none;
+  filter: blur(8px);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.rb-pill.rb-rainbow-on::before { opacity: 1; }
+
+@property --rb-rainbow-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes rbRainbowFlow {
+  from { --rb-rainbow-angle: 0deg; }
+  to { --rb-rainbow-angle: 360deg; }
+}
+
+/* ---- 加载光边 ---- */
+.rb-edge {
+  position: absolute;
+  inset: calc(-1 * var(--rb-room));
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 130ms cubic-bezier(0.23, 1, 0.32, 1);
+  will-change: opacity;
+  --rb-edge-duration: 3s;
+}
+
+.rb-edge.is-active {
+  opacity: 1;
+  transition: opacity 110ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.rb-edge svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  display: block;
+}
+
+.rb-edge path {
+  fill: none;
+  stroke: #fff;
+  stroke-linecap: round;
+  opacity: .5;
+  animation: var(--rb-edge-duration) linear infinite;
+}
+
+/* 光边线宽：宽段原来最大 21px（叠加模糊后外溢很远），收紧到 4.6px，
+   配合更小的模糊半径，整体只溢出卡片外几个像素。 */
+.rb-edge .rb-e1 { --rb-w-band: .09px; --rb-w-wide: 1.1px; }
+.rb-edge .rb-e2 { --rb-w-band: .2px;  --rb-w-wide: 2.2px; }
+.rb-edge .rb-e3 { --rb-w-band: .32px; --rb-w-wide: 3.4px; }
+.rb-edge .rb-e4 { --rb-w-band: .48px; --rb-w-wide: 4.6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rb-edge path { animation-duration: 6s; }
+  .rb-pill, .rb-edge { transition-duration: 0ms; }
+}
+
+/* ---- Dony 处理态彩虹底层（药丸下面压一层缓动彩虹光 + 周围细彩虹光芒） ---- */
+.rainbow-glow-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* 渐隐渐显：慢速。1.35s ≈ 首次呼吸的上升段，所以“渐显”与第一次呼吸是一回事，
+     不会出现“先快速亮一下、再开始呼吸”。位置/圆角由 JS 实时写。 */
+  opacity: 0;
+  transition: opacity 1.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.rainbow-glow-wrap.on { opacity: 1; }
+
+/* 交接式挂载（RainbowGlow 检测到"挂载那一刻就已经 active"）：
+   **跳过 1.35s 渐显**，直接可见。那条 1.35s 是给"药丸原地长成处理态"设计的，
+   而追问交接时胶囊是**被换上来的**（同一帧挂载），再重播一遍入场就是"迟到感"——
+   用户实测原话："加载胶囊显示迟了"。 */
+.rainbow-glow-wrap[data-instant="true"],
+.rainbow-glow-wrap[data-instant="true"] .rainbow-underlay { transition: none; }
+
+.rainbow-underlay {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  /* 渐隐渐显主要动“光的延伸范围”：收起时紧贴卡片，展开时向外多露一点点 */
+  transform: scale(0.93);
+  transition: transform 1.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.rainbow-glow-wrap.on .rainbow-underlay { transform: scale(1); }
+
+/* 呼吸灯：浓度 0.35 ↔ 0.78（最暗时留一点彩虹，最亮也不拉满），
+   3s 一个来回、顶部稍作停留 —— 整体行程比原来压缩了一半以上。
+   动画只在 active 期间挂上、且从 0 相位开始 —— 首次“吸气”正好就是渐显；
+   结束时延后 1.45s 再摘掉，让慢速淡出跑完，不会在随机相位上跳一下。 */
+.rainbow-underlay.breathing { animation: rbBreath 3s ease-in-out infinite; }
+
+@keyframes rbBreath {
+  0%, 100% { opacity: 0.2; }     /* 最暗留一点点，不为 0 */
+  45%, 55% { opacity: 0.78; }
+}
+
+/* 主光斑：左上→右下缓慢漂移的彩虹光（呼吸由父层 .rainbow-underlay 统一驱动）。
+   外扩从 14px 收到 6px、模糊从 16px 收到 8px：只在卡片外沿露一点。 */
+.rainbow-underlay::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--rb-rainbow-angle),
+    rgba(255, 107, 157, .8),
+    rgba(196, 77, 255, .75),
+    rgba(77, 138, 255, .7),
+    rgba(77, 255, 217, .7),
+    rgba(255, 216, 77, .75),
+    rgba(255, 107, 157, .8)
+  );
+  filter: blur(8px);
+  animation: rbRainbowFlow 9s linear infinite, rainbowDrift 7s ease-in-out infinite alternate;
+}
+
+/* 细光芒：贴合卡片周围一圈较细的流动彩虹（这圈就是“光边”） */
+.rainbow-underlay::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from calc(var(--rb-rainbow-angle) * -1),
+    rgba(255, 107, 157, .9),
+    rgba(196, 77, 255, .85),
+    rgba(77, 138, 255, .85),
+    rgba(77, 255, 217, .85),
+    rgba(255, 216, 77, .9),
+    rgba(255, 107, 157, .9)
+  );
+  filter: blur(2.5px);
+  animation: rbRainbowFlow 6s linear infinite reverse;
+}
+
+@keyframes rainbowDrift {
+  from { transform: translate(-3px, -2px) scale(1.006); }
+  to { transform: translate(3px, 2px) scale(1.018); }
+}

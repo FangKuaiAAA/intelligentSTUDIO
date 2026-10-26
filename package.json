@@ -1,0 +1,129 @@
+{
+  "name": "intelligentstudio",
+  "productName": "intelligentSTUDIO",
+  "version": "0.1.0",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "electron:dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "vite build && electron-builder",
+    "preelectron:build": "npm run clean:memory",
+    "clean:memory": "node scripts/clear-memory.js",
+    "backend": "python backend/main.py",
+    "office:icons": "python scripts/make-office-icons.py",
+    "office:dev": "npm --prefix office run dev",
+    "office:build": "npm --prefix office run build",
+    "office:bridge": "python backend/office_bridge.py",
+    "office:install": "powershell -ExecutionPolicy Bypass -File scripts/install-office-addin.ps1"
+  },
+  "dependencies": {
+    "framer-motion": "^11.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "concurrently": "^9.0.0",
+    "electron": "^31.0.0",
+    "electron-builder": "^26.18.0",
+    "typescript": "^5.5.0",
+    "vite": "^5.4.0",
+    "wait-on": "^7.0.0"
+  },
+  "build": {
+    "appId": "com.dony.intelligentstudio",
+    "win": {
+      "icon": "assets/icons/intelligentSTUDIO-installer.ico",
+      "executableName": "intelligentSTUDIO"
+    },
+    "nsis": {
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": false,
+      "include": "scripts/installer-shortcuts.nsh"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json",
+      "!**/*.map",
+      "!**/*.pyc"
+    ],
+    "extraResources": [
+      {
+        "from": "assets/icons",
+        "to": "icons"
+      },
+      {
+        "from": "extension/dist",
+        "to": "extension"
+      },
+      {
+        "from": ".appx_config.json",
+        "to": ".appx_config.json"
+      },
+      {
+        "from": "backend-dist",
+        "to": "backend"
+      },
+      {
+        "from": "models/bge-small-zh-v1.5",
+        "to": "models/bge-small-zh-v1.5"
+      },
+      {
+        "from": "models/qwen2.5-0.5b-instruct-int4",
+        "to": "models/qwen2.5-0.5b-instruct-int4"
+      },
+      {
+        "from": "onboarding-app/bin/x64/Debug/net8.0-windows10.0.19041.0/win-x64",
+        "to": "onboarding"
+      },
+      {
+        "from": "settings-app/bin/x64/Debug/net8.0-windows10.0.19041.0/win-x64",
+        "to": "settings"
+      },
+      {
+        "from": "dony-app/bin/x64/Debug/net8.0-windows10.0.19041.0/win-x64",
+        "to": "dony"
+      },
+      {
+        "from": "playground-app/bin/x64/Debug/net8.0-windows10.0.19041.0/win-x64",
+        "to": "playground"
+      },
+      {
+        "from": "photo-app/bin/x64/Debug/net8.0-windows10.0.19041.0/win-x64",
+        "to": "photo"
+      },
+      {
+        "from": "scripts/install-edge-extension.ps1",
+        "to": "scripts/install-edge-extension.ps1"
+      },
+      {
+        "from": "scripts/install-office-addin.ps1",
+        "to": "scripts/install-office-addin.ps1"
+      },
+      {
+        "from": "office/manifest.xml",
+        "to": "office/manifest.xml"
+      },
+      {
+        "from": "office/dist",
+        "to": "office/dist"
+      },
+      {
+        "from": "assets/office-cert",
+        "to": "office-cert"
+      },
+      {
+        "from": "assets/photo-webview",
+        "to": "photo-webview"
+      }
+    ]
+  }
+}

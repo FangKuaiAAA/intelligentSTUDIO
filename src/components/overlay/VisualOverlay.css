@@ -1,0 +1,1270 @@
+.visual-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  pointer-events: auto; overflow: hidden;
+}
+
+.visual-dim-layer {
+  position: absolute; inset: 0;
+}
+
+.visual-dim-layer-passive {
+  pointer-events: none;
+}
+
+.visual-dim-cover {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  pointer-events: none;
+  /* 只有透明度变化，不带任何位移或缩放；用线性以免开头有"加速感" */
+  animation: dimFadeIn 0.26s linear forwards;
+}
+
+@keyframes dimFadeIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.visual-dim-bg {
+  position: absolute; inset: 0;
+  cursor: crosshair;
+  z-index: 1;
+}
+
+
+
+.visual-cutout {
+  position: fixed;
+  z-index: 5;
+  pointer-events: none;
+  border-radius: 4px;
+  transition: box-shadow 420ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.visual-cutout-border {
+  position: absolute; inset: -2px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 5px;
+  pointer-events: none;
+}
+
+.visual-cutout-glow {
+  position: absolute; inset: -4px;
+  border-radius: 6px;
+  box-shadow:
+    0 0 6px rgba(255, 255, 255, 0.3),
+    0 0 20px rgba(255, 255, 255, 0.12),
+    inset 0 0 6px rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+  animation: selGlowPulse 2s ease-in-out infinite;
+}
+
+@keyframes selGlowPulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.visual-drag-rect {
+  position: fixed;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.visual-resize-handle {
+  position: fixed;
+  width: 10px; height: 10px;
+  background: white;
+  border: 1.5px solid rgba(196, 77, 255, 0.5);
+  border-radius: 50%;
+  z-index: 10;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.visual-resize-handle:hover {
+  transform: scale(1.5);
+  box-shadow: 0 0 10px rgba(196, 77, 255, 0.4);
+}
+
+.visual-rainbow-flow {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 1;
+  --visual-flow-duration: 520ms;
+  --visual-flow-color-start-x: 50%;
+  --visual-flow-color-start-y: 52%;
+  --visual-flow-color-mid-x: 28%;
+  --visual-flow-color-mid-y: 24%;
+  --visual-flow-color-end-x: 66%;
+  --visual-flow-color-end-y: 34%;
+  --visual-flow-skew: 0deg;
+  --visual-flow-scale: 1.12;
+  --visual-flow-length-start: .92;
+  --visual-flow-length-surge1: 1.22;
+  --visual-flow-length-surge2: 1.04;
+  --visual-flow-length-stall: 1.46;
+  --visual-flow-length-surge3: .86;
+  --visual-flow-length-end: 1.18;
+  --visual-flow-y-stall: -126%;
+  --visual-flow-y-stall-end: -130%;
+  --visual-flow-y-surge3: -238%;
+  --visual-flow-y-end: -428%;
+  --visual-flow-shape-start: -16% 28%, 0% 22%, 18% 18%, 37% 14%, 55% 18%, 74% 23%, 92% 24%, 116% 30%, 116% 84%, 92% 74%, 74% 66%, 55% 62%, 37% 67%, 18% 76%, 0% 82%, -16% 88%;
+  --visual-flow-shape-surge1: var(--visual-flow-shape-start);
+  --visual-flow-shape-surge2: var(--visual-flow-shape-start);
+  --visual-flow-shape-stall: var(--visual-flow-shape-start);
+  --visual-flow-shape-surge3: var(--visual-flow-shape-start);
+  --visual-flow-shape-end: var(--visual-flow-shape-start);
+  --visual-flow-bg-start: radial-gradient(ellipse 66% 112% at 8% 66%, rgba(116, 0, 255, 1) 0%, rgba(116, 0, 255, 1) 38%, rgba(116, 0, 255, .28) 66%, transparent 96%), radial-gradient(ellipse 58% 104% at 34% 38%, rgba(255, 0, 34, .96) 0%, rgba(255, 0, 34, .96) 34%, rgba(116, 0, 255, .24) 64%, transparent 96%), radial-gradient(ellipse 62% 108% at 62% 62%, rgba(255, 226, 22, .9) 0%, rgba(255, 226, 22, .9) 28%, rgba(255, 40, 44, .26) 58%, transparent 92%), radial-gradient(ellipse 66% 112% at 88% 44%, rgba(154, 42, 255, .92) 0%, rgba(154, 42, 255, .92) 38%, rgba(116, 0, 255, .28) 66%, transparent 98%);
+  --visual-flow-bg-surge1: var(--visual-flow-bg-start);
+  --visual-flow-bg-surge2: var(--visual-flow-bg-start);
+  --visual-flow-bg-stall: var(--visual-flow-bg-start);
+  --visual-flow-bg-surge3: var(--visual-flow-bg-start);
+  --visual-flow-bg-end: var(--visual-flow-bg-start);
+  animation: visualSelectionHighlight var(--visual-flow-duration) cubic-bezier(.2, .76, .16, 1) forwards;
+}
+
+.visual-rainbow-flow::before {
+  content: '';
+  position: absolute;
+  left: -22%;
+  right: -22%;
+  top: 92%;
+  height: 148%;
+  opacity: 0;
+  background: var(--visual-flow-bg-start);
+  background-size: 132% 132%;
+  background-position: var(--visual-flow-color-start-x) var(--visual-flow-color-start-y);
+  filter: blur(62px) saturate(3.35) brightness(1.24) drop-shadow(0 0 64px rgba(116, 0, 255, .8)) drop-shadow(0 0 48px rgba(255, 0, 34, .48)) drop-shadow(0 0 40px rgba(255, 226, 22, .34));
+  -webkit-mask-image: radial-gradient(ellipse 82% 62% at 50% 52%, #000 0%, rgba(0, 0, 0, .92) 34%, rgba(0, 0, 0, .44) 62%, transparent 86%);
+  mask-image: radial-gradient(ellipse 82% 62% at 50% 52%, #000 0%, rgba(0, 0, 0, .92) 34%, rgba(0, 0, 0, .44) 62%, transparent 86%);
+  mix-blend-mode: screen;
+  transform-origin: center 50%;
+  transform: translate3d(0, 24%, 0) scaleX(var(--visual-flow-scale)) scaleY(var(--visual-flow-length-start)) skewY(var(--visual-flow-skew));
+  pointer-events: none;
+  will-change: transform, opacity, filter, background, background-position;
+  animation: visualRainbowGlowUp var(--visual-flow-duration) cubic-bezier(.2, .76, .16, 1) forwards;
+}
+
+.visual-rainbow-flow::after {
+  content: '';
+  position: absolute;
+  left: -28%;
+  right: -28%;
+  top: 84%;
+  height: 154%;
+  opacity: 0;
+  background: var(--visual-flow-bg-start);
+  background-size: 150% 150%;
+  background-position: var(--visual-flow-color-start-x) var(--visual-flow-color-start-y);
+  filter: blur(152px) saturate(3.5) brightness(1.32);
+  -webkit-mask-image: radial-gradient(ellipse 76% 54% at 50% 54%, rgba(0, 0, 0, .88) 0%, rgba(0, 0, 0, .5) 52%, transparent 82%);
+  mask-image: radial-gradient(ellipse 76% 54% at 50% 54%, rgba(0, 0, 0, .88) 0%, rgba(0, 0, 0, .5) 52%, transparent 82%);
+  mix-blend-mode: screen;
+  transform-origin: center 50%;
+  transform: translate3d(0, 24%, 0) scaleX(calc(var(--visual-flow-scale) + .12)) scaleY(var(--visual-flow-length-start)) skewY(var(--visual-flow-skew));
+  pointer-events: none;
+  will-change: transform, opacity, filter, background, background-position;
+  animation: visualRainbowGlowBloom var(--visual-flow-duration) cubic-bezier(.2, .76, .16, 1) forwards;
+}
+
+@keyframes visualSelectionHighlight {
+  0% {
+    background: rgba(255, 255, 255, 0);
+    box-shadow: inset 0 0 0 rgba(255, 255, 255, 0), 0 0 0 rgba(255, 255, 255, 0);
+  }
+  18% {
+    background: rgba(255, 255, 255, 0);
+    box-shadow:
+      inset 0 0 0 2px rgba(255, 255, 255, .92),
+      inset 0 0 34px rgba(255, 255, 255, .72),
+      inset 0 0 82px rgba(116, 0, 255, .34),
+      0 0 34px rgba(255, 255, 255, .72),
+      0 0 86px rgba(116, 0, 255, .38);
+  }
+  48% {
+    background: rgba(255, 255, 255, 0);
+    box-shadow:
+      inset 0 0 0 3px rgba(255, 255, 255, 1),
+      inset 0 0 42px rgba(255, 255, 255, .86),
+      inset 0 0 110px rgba(255, 226, 22, .36),
+      0 0 42px rgba(255, 255, 255, .86),
+      0 0 112px rgba(255, 226, 22, .34),
+      0 0 148px rgba(116, 0, 255, .32);
+  }
+  78% {
+    background: rgba(255, 255, 255, 0);
+    box-shadow:
+      inset 0 0 0 2px rgba(255, 255, 255, .72),
+      inset 0 0 32px rgba(255, 255, 255, .5),
+      inset 0 0 86px rgba(255, 0, 34, .2),
+      0 0 32px rgba(255, 255, 255, .48),
+      0 0 92px rgba(255, 0, 34, .22);
+  }
+  100% {
+    background: rgba(255, 255, 255, 0);
+    box-shadow: inset 0 0 0 rgba(255, 255, 255, 0), 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
+@keyframes visualRainbowGlowUp {
+  0% {
+    opacity: 0;
+    background: var(--visual-flow-bg-start);
+    background-position: var(--visual-flow-color-start-x) var(--visual-flow-color-start-y);
+    background-size: 128% 136%;
+    filter: blur(60px) saturate(3.24) brightness(1.22) drop-shadow(0 0 60px rgba(116, 0, 255, .72)) drop-shadow(0 0 44px rgba(255, 0, 34, .42)) drop-shadow(0 0 36px rgba(255, 226, 22, .28));
+    transform: translate3d(0, 24%, 0) scaleX(var(--visual-flow-scale)) scaleY(var(--visual-flow-length-start)) skewY(var(--visual-flow-skew));
+  }
+  10% {
+    opacity: .82;
+    background: var(--visual-flow-bg-surge1);
+    background-size: 154% 118%;
+    background-position: calc(var(--visual-flow-color-start-x) + 18%) calc(var(--visual-flow-color-start-y) - 16%);
+    filter: blur(66px) saturate(3.55) brightness(1.28) drop-shadow(0 0 72px rgba(116, 0, 255, .82)) drop-shadow(0 0 54px rgba(255, 0, 34, .52)) drop-shadow(0 0 46px rgba(255, 226, 22, .38));
+    transform: translate3d(0, -22%, 0) scaleX(calc(var(--visual-flow-scale) + .025)) scaleY(var(--visual-flow-length-surge1)) skewY(calc(var(--visual-flow-skew) * -.35));
+  }
+  24% {
+    opacity: .96;
+    background: var(--visual-flow-bg-surge2);
+    background-size: 116% 164%;
+    background-position: var(--visual-flow-color-mid-x) var(--visual-flow-color-mid-y);
+    filter: blur(64px) saturate(3.65) brightness(1.3) drop-shadow(0 0 78px rgba(116, 0, 255, .86)) drop-shadow(0 0 60px rgba(255, 0, 34, .58)) drop-shadow(0 0 52px rgba(255, 226, 22, .44));
+    transform: translate3d(0, -82%, 0) scaleX(calc(var(--visual-flow-scale) + .075)) scaleY(var(--visual-flow-length-surge2)) skewY(calc(var(--visual-flow-skew) * .78));
+  }
+  42% {
+    opacity: .94;
+    background: var(--visual-flow-bg-stall);
+    background-size: 168% 122%;
+    background-position: calc(var(--visual-flow-color-mid-x) - 24%) calc(var(--visual-flow-color-mid-y) + 18%);
+    filter: blur(70px) saturate(3.38) brightness(1.24) drop-shadow(0 0 72px rgba(116, 0, 255, .78)) drop-shadow(0 0 54px rgba(255, 0, 34, .5)) drop-shadow(0 0 46px rgba(255, 226, 22, .34));
+    transform: translate3d(0, var(--visual-flow-y-stall), 0) scaleX(calc(var(--visual-flow-scale) + .04)) scaleY(var(--visual-flow-length-stall)) skewY(calc(var(--visual-flow-skew) * -.72));
+  }
+  47% {
+    opacity: .92;
+    background: var(--visual-flow-bg-stall);
+    background-size: 174% 118%;
+    background-position: calc(var(--visual-flow-color-mid-x) - 18%) calc(var(--visual-flow-color-mid-y) + 14%);
+    filter: blur(72px) saturate(3.34) brightness(1.22) drop-shadow(0 0 72px rgba(116, 0, 255, .76)) drop-shadow(0 0 52px rgba(255, 0, 34, .48)) drop-shadow(0 0 44px rgba(255, 226, 22, .32));
+    transform: translate3d(0, var(--visual-flow-y-stall-end), 0) scaleX(calc(var(--visual-flow-scale) + .045)) scaleY(calc(var(--visual-flow-length-stall) + .08)) skewY(calc(var(--visual-flow-skew) * -.68));
+  }
+  63% {
+    opacity: .84;
+    background: var(--visual-flow-bg-surge3);
+    background-size: 126% 178%;
+    background-position: calc(var(--visual-flow-color-end-x) - 16%) calc(var(--visual-flow-color-end-y) + 22%);
+    filter: blur(68px) saturate(3.72) brightness(1.32) drop-shadow(0 0 84px rgba(116, 0, 255, .9)) drop-shadow(0 0 66px rgba(255, 0, 34, .62)) drop-shadow(0 0 56px rgba(255, 226, 22, .48));
+    transform: translate3d(0, var(--visual-flow-y-surge3), 0) scaleX(calc(var(--visual-flow-scale) + .1)) scaleY(var(--visual-flow-length-surge3)) skewY(calc(var(--visual-flow-skew) * .92));
+  }
+  84% {
+    opacity: .58;
+    background: var(--visual-flow-bg-end);
+    background-size: 160% 142%;
+    background-position: calc(var(--visual-flow-color-end-x) + 22%) calc(var(--visual-flow-color-end-y) - 18%);
+    filter: blur(66px) saturate(3.16) brightness(1.2) drop-shadow(0 0 64px rgba(116, 0, 255, .7)) drop-shadow(0 0 48px rgba(255, 0, 34, .44)) drop-shadow(0 0 40px rgba(255, 226, 22, .3));
+    transform: translate3d(0, -342%, 0) scaleX(calc(var(--visual-flow-scale) + .07)) scaleY(var(--visual-flow-length-end)) skewY(calc(var(--visual-flow-skew) * -.55));
+  }
+  100% {
+    opacity: 0;
+    background: var(--visual-flow-bg-end);
+    background-size: 118% 166%;
+    background-position: var(--visual-flow-color-end-x) var(--visual-flow-color-end-y);
+    filter: blur(68px) saturate(2.98) brightness(1.16) drop-shadow(0 0 58px rgba(116, 0, 255, .62)) drop-shadow(0 0 42px rgba(255, 0, 34, .36)) drop-shadow(0 0 34px rgba(255, 226, 22, .24));
+    transform: translate3d(0, var(--visual-flow-y-end), 0) scaleX(calc(var(--visual-flow-scale) + .08)) scaleY(calc(var(--visual-flow-length-end) + .12)) skewY(calc(var(--visual-flow-skew) * .82));
+  }
+}
+
+@keyframes visualRainbowGlowBloom {
+    0% {
+      opacity: 0;
+      background: var(--visual-flow-bg-start);
+      background-position: var(--visual-flow-color-start-x) var(--visual-flow-color-start-y);
+      background-size: 142% 154%;
+      filter: blur(158px) saturate(3.38) brightness(1.28);
+      transform: translate3d(0, 24%, 0) scaleX(calc(var(--visual-flow-scale) + .16)) scaleY(calc(var(--visual-flow-length-start) + .22)) skewY(var(--visual-flow-skew));
+    }
+    10% {
+      opacity: .34;
+      background: var(--visual-flow-bg-surge1);
+      background-position: calc(var(--visual-flow-color-start-x) + 18%) calc(var(--visual-flow-color-start-y) - 16%);
+      background-size: 174% 132%;
+      filter: blur(166px) saturate(3.72) brightness(1.38);
+      transform: translate3d(0, -22%, 0) scaleX(calc(var(--visual-flow-scale) + .18)) scaleY(calc(var(--visual-flow-length-surge1) + .24)) skewY(calc(var(--visual-flow-skew) * -.35));
+    }
+    24% {
+      opacity: .42;
+      background: var(--visual-flow-bg-surge2);
+      background-position: var(--visual-flow-color-mid-x) var(--visual-flow-color-mid-y);
+      background-size: 132% 188%;
+      filter: blur(158px) saturate(3.86) brightness(1.42);
+      transform: translate3d(0, -82%, 0) scaleX(calc(var(--visual-flow-scale) + .22)) scaleY(calc(var(--visual-flow-length-surge2) + .28)) skewY(calc(var(--visual-flow-skew) * .78));
+    }
+    42% {
+      opacity: .4;
+      background: var(--visual-flow-bg-stall);
+      background-position: calc(var(--visual-flow-color-mid-x) - 24%) calc(var(--visual-flow-color-mid-y) + 18%);
+      background-size: 190% 140%;
+      filter: blur(174px) saturate(3.56) brightness(1.34);
+      transform: translate3d(0, var(--visual-flow-y-stall), 0) scaleX(calc(var(--visual-flow-scale) + .18)) scaleY(calc(var(--visual-flow-length-stall) + .32)) skewY(calc(var(--visual-flow-skew) * -.72));
+    }
+    47% {
+      opacity: .36;
+      background: var(--visual-flow-bg-stall);
+      background-position: calc(var(--visual-flow-color-mid-x) - 18%) calc(var(--visual-flow-color-mid-y) + 14%);
+      background-size: 196% 136%;
+      filter: blur(178px) saturate(3.48) brightness(1.32);
+      transform: translate3d(0, var(--visual-flow-y-stall-end), 0) scaleX(calc(var(--visual-flow-scale) + .19)) scaleY(calc(var(--visual-flow-length-stall) + .4)) skewY(calc(var(--visual-flow-skew) * -.68));
+    }
+    63% {
+      opacity: .38;
+      background: var(--visual-flow-bg-surge3);
+      background-position: calc(var(--visual-flow-color-end-x) - 16%) calc(var(--visual-flow-color-end-y) + 22%);
+      background-size: 142% 202%;
+      filter: blur(164px) saturate(3.92) brightness(1.44);
+      transform: translate3d(0, var(--visual-flow-y-surge3), 0) scaleX(calc(var(--visual-flow-scale) + .24)) scaleY(calc(var(--visual-flow-length-surge3) + .3)) skewY(calc(var(--visual-flow-skew) * .92));
+    }
+    84% {
+      opacity: .24;
+      background: var(--visual-flow-bg-end);
+      background-position: calc(var(--visual-flow-color-end-x) + 22%) calc(var(--visual-flow-color-end-y) - 18%);
+      background-size: 184% 166%;
+      filter: blur(170px) saturate(3.18) brightness(1.26);
+      transform: translate3d(0, -342%, 0) scaleX(calc(var(--visual-flow-scale) + .2)) scaleY(calc(var(--visual-flow-length-end) + .24)) skewY(calc(var(--visual-flow-skew) * -.55));
+    }
+    100% {
+      opacity: 0;
+      background: var(--visual-flow-bg-end);
+      background-position: var(--visual-flow-color-end-x) var(--visual-flow-color-end-y);
+      background-size: 136% 190%;
+      filter: blur(172px) saturate(2.9) brightness(1.18);
+      transform: translate3d(0, var(--visual-flow-y-end), 0) scaleX(calc(var(--visual-flow-scale) + .2)) scaleY(calc(var(--visual-flow-length-end) + .34)) skewY(calc(var(--visual-flow-skew) * .82));
+  }
+}
+
+
+
+
+
+.visual-morph-card {
+  z-index: 110;
+}
+
+.visual-custom-input-wrap {
+  width: 100%;
+  position: relative;
+  border-radius: 22px;
+  isolation: isolate;
+}
+
+.visual-request-card {
+  position: relative;
+  box-sizing: border-box;
+  overflow: visible;
+  border-radius: 22px;
+  isolation: isolate;
+}
+
+.visual-request-card-expanded {
+  overflow: visible;
+  padding: 10px 14px 18px;
+  border-radius: 24px;
+  background:
+    linear-gradient(rgba(190, 190, 198, 0.45), rgba(190, 190, 198, 0.45)),
+    rgba(232, 232, 236, 0.45);
+  backdrop-filter: blur(64px);
+  -webkit-backdrop-filter: blur(64px);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.1),
+    0 14px 36px rgba(0, 0, 0, 0.16);
+}
+
+/* 关闭按钮：叠在输入框上，圆心对齐输入框右侧圆角圆心，灰半透明 */
+.visual-answer-close-btn {
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 6;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(122, 122, 130, 0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.visual-answer-close-btn:hover {
+  background: rgba(122, 122, 130, 0.74);
+}
+
+.visual-answer-close-btn:active {
+  transform: translateY(-50%) scale(0.94);
+}
+
+.visual-selected-option {
+  width: 100%;
+  height: 44px;
+  padding: 8px 18px;
+  box-sizing: border-box;
+  justify-content: flex-start;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: none;
+  cursor: default;
+}
+
+.visual-request-card-expanded .visual-selected-option {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  width: 100%;
+  height: 44px;
+  padding: 10px 20px 10px 40px;
+  font-size: 14px;
+  border-radius: 22px;
+  border: none;
+  background: rgba(255, 255, 255, 0.99);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  color: #111;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  text-align: left;
+  outline: none;
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255,255,255,0.82),
+    0 8px 18px rgba(0, 0, 0, 0.18);
+  transition: box-shadow .2s, background .2s;
+  cursor: grab;
+}
+
+.visual-custom-request-label {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 10px 20px 10px 40px;
+  overflow: visible;
+  border-radius: 22px;
+  border: none;
+  background: rgba(255, 255, 255, 0.99);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255,255,255,0.82),
+    0 8px 18px rgba(0, 0, 0, 0.18);
+  color: #111;
+  font-size: 14px;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height: 24px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  outline: none;
+  transition: box-shadow .2s, background .2s;
+  cursor: grab;
+}
+
+.visual-request-card-expanded .visual-selected-option:active,
+.visual-custom-request-label:active {
+  cursor: grabbing;
+}
+
+.visual-request-card-expanded .visual-selected-option:hover,
+.visual-custom-request-label:hover {
+  background: rgba(255, 255, 255, 0.99);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255,255,255,0.82),
+    0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.visual-request-card-expanded .visual-selected-option::before,
+.visual-custom-request-label::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--visual-custom-rainbow-angle),
+    rgba(255,50,60,.75),
+    rgba(180,50,255,.7),
+    rgba(30,60,200,.6),
+    rgba(255,220,50,.65),
+    rgba(120,70,170,.6),
+    rgba(255,50,60,.75)
+  );
+  animation: visualCustomRainbowFlow 12s linear infinite;
+  filter: blur(13px);
+  padding: 4px;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.visual-request-card-expanded .visual-selected-option::after,
+.visual-custom-request-label::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--visual-custom-rainbow-angle),
+    rgba(255,50,60,.75),
+    rgba(180,50,255,.7),
+    rgba(30,60,200,.6),
+    rgba(255,220,50,.65),
+    rgba(120,70,170,.6),
+    rgba(255,50,60,.75)
+  );
+  animation: visualCustomRainbowFlow 12s linear infinite;
+  filter: blur(14px);
+  opacity: 0.42;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.visual-request-card-expanded .visual-selected-option::before,
+.visual-custom-request-label::before {
+  display: none;
+}
+
+.visual-request-card-expanded .visual-selected-option::after,
+.visual-custom-request-label::after {
+  display: none;
+}
+
+@keyframes visualCustomRequestFlow {
+  from { background-position: 100% 100%; }
+  to { background-position: 0% 0%; }
+}
+
+.visual-request-card-expanded .visual-selected-option > span,
+.visual-custom-request-label > span {
+  position: relative;
+  z-index: 0;
+}
+
+.visual-request-result {
+  height: calc(100% - 42px);
+  margin-top: 12px;
+  overflow-y: auto;
+  color: #1a1a1a;
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.visual-response-line {
+  margin: 0 0 8px;
+  will-change: transform, opacity, filter;
+}
+
+.visual-input-icon {
+  position: absolute;
+  /* 图标 18px：left 取 13px 让圆心仍落在 22px 处（与 22px 时一致），
+     光晕的模糊半径按屏幕像素算，所以图标变小后光晕范围基本不变 */
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* 图标光晕：同一份路径的彩虹渐变描边 + 模糊，垫在黑线描之下。
+   红/橙/黄/蓝/紫沿图形铺开（真实彩虹光），而不是几层同色 drop-shadow 叠成偏红的一团。
+   分两层：近层把颜色贴在图形边缘，远层再向外扩散一圈 —— 光晕向外延伸，图标本身不变。 */
+.visual-icon-glow {
+  stroke-width: 2.6;
+  opacity: 0.95;
+  filter: blur(4px);
+}
+
+.visual-icon-glow-far {
+  stroke-width: 3.6;
+  opacity: 0.55;
+  filter: blur(10px);
+}
+
+.visual-icon-ink { stroke-width: 1.55; }
+
+.visual-input-placeholder {
+  position: absolute;
+  left: 48px;
+  top: 50%;
+  z-index: 2;
+  color: rgba(0,0,0,0.3);
+  font-size: 14px;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.visual-custom-input-wrap::before {
+  content: '';
+  position: absolute; inset: -3px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--visual-custom-rainbow-angle),
+    rgba(255,50,60,.75),
+    rgba(180,50,255,.7),
+    rgba(30,60,200,.6),
+    rgba(255,220,50,.65),
+    rgba(255,140,30,.6),
+    rgba(255,50,60,.75)
+  );
+  animation: visualCustomRainbowFlow 12s linear infinite;
+  pointer-events: none;
+  filter: blur(8px);
+  z-index: -1;
+}
+
+@property --visual-custom-rainbow-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes visualCustomRainbowFlow {
+  from { --visual-custom-rainbow-angle: 0deg; }
+  to { --visual-custom-rainbow-angle: 360deg; }
+}
+
+.visual-custom-input {
+  width: 320px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 10px 20px 10px 48px;
+  border-radius: 22px;
+  border: none;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  color: #111;
+  font-size: 14px;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  text-align: left;
+  outline: none;
+  position: relative;
+  z-index: 1;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.15);
+  transition: box-shadow .2s, background .2s;
+}
+.visual-custom-input:focus {
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.25);
+}
+.visual-option-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 18px;
+  border-radius: 24px;
+  border: none;
+  background: rgba(215, 215, 220, 0.4);
+  backdrop-filter: blur(64px);
+  -webkit-backdrop-filter: blur(64px);
+  color: #000;
+  font-size: 14px;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.12),
+    inset 0 0 0 0.5px rgba(255,255,255,0.35);
+  transition: box-shadow .2s, background .2s;
+  position: relative;
+}
+
+.visual-option-pill:hover {
+  background: rgba(215, 215, 220, 0.5);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.2),
+    inset 0 0 0 0.5px rgba(255,255,255,0.4);
+}
+
+
+
+
+
+
+
+.visual-response-card {
+  position: fixed;
+  z-index: 110;
+  width: 520px;
+  max-width: 80vw;
+  max-height: 60vh;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(36px);
+  -webkit-backdrop-filter: blur(36px);
+  border-radius: 20px;
+  padding: 24px 28px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.visual-response-card::-webkit-scrollbar { width: 6px; }
+.visual-response-card::-webkit-scrollbar-track { background: transparent; }
+.visual-response-card::-webkit-scrollbar-thumb { background: rgba(196,77,255,0.2); border-radius: 3px; }
+
+.visual-response-glow {
+  display: none;
+}
+
+.visual-response-content {
+  position: relative; z-index: 1;
+  color: #1a1a1a;
+  font-size: 15px; line-height: 1.7;
+  white-space: pre-wrap; word-break: break-word;
+}
+
+.visual-response-text {
+  min-height: 1em;
+}
+
+.visual-response-placeholder {
+  color: #aaa;
+  font-style: italic;
+}
+
+.visual-streaming-cursor {
+  display: inline-block;
+  width: 2px; height: 18px;
+  background: #C44DFF;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 0.6s ease-in-out infinite;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+@keyframes glowBreathe {
+  0%,100% { opacity: .42; transform: scale(1); }
+  50% { opacity: .66; transform: scale(1.03); }
+}
+
+.visual-close-btn {
+  position: fixed; top: 16px; right: 16px; z-index: 120;
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: rgba(255,255,255,.15); backdrop-filter: blur(10px);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background .2s, transform .2s;
+}
+.visual-close-btn:hover { background: rgba(255,255,255,.3); transform: scale(1.1); }
+.visual-close-btn:active { transform: scale(.95); }
+
+.visual-edge-rainbow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background-image:
+    radial-gradient(ellipse 80% 30% at 50% 0%, rgba(255,90,150,.25) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 25% at 20% 0%, rgba(90,140,255,.2) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 25% at 80% 0%, rgba(70,255,200,.18) 0%, transparent 65%),
+    radial-gradient(ellipse 80% 30% at 50% 100%, rgba(180,70,255,.2) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 25% at 20% 100%, rgba(255,210,70,.15) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 25% at 80% 100%, rgba(255,160,60,.15) 0%, transparent 65%),
+    radial-gradient(ellipse 25% 60% at 0% 30%, rgba(180,70,255,.18) 0%, transparent 65%),
+    radial-gradient(ellipse 25% 60% at 0% 70%, rgba(255,90,150,.15) 0%, transparent 60%),
+    radial-gradient(ellipse 25% 60% at 100% 35%, rgba(70,255,200,.16) 0%, transparent 60%),
+    radial-gradient(ellipse 25% 60% at 100% 70%, rgba(255,210,70,.14) 0%, transparent 60%);
+  animation: edgeRainbowPulse 6s ease-in-out infinite;
+}
+
+@keyframes edgeRainbowPulse {
+  0%, 100% { opacity: .55; }
+  50% { opacity: .85; }
+}
+
+/* =========================================================
+   Visual Intelligence · 确认输入后的请求/回答结构
+   （仅作用于用户确认输入之后的界面）
+   ========================================================= */
+
+.visual-confirm-stage {
+  position: fixed;
+  z-index: 110;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* 输入框插槽：确认前为输入框，确认后为彩虹请求框，两者重叠、位置恒定 */
+.visual-request-slot {
+  position: relative;
+  flex: 0 0 auto;
+  width: 320px;
+  height: 44px;
+  z-index: 2;
+}
+
+/* ---- 彩虹输入框（确认后展示操作内容，全程不动，可拖动） ---- */
+.visual-request-pill {
+  position: relative;
+  width: 320px;
+  height: 44px;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  padding: 10px 20px 10px 40px;
+  border-radius: 22px;
+  isolation: isolate;
+  background: transparent;
+  color: #111;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  line-height: 24px;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: ellipsis;
+  cursor: grab;
+  z-index: 2;
+  transition: box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* 白色磨砂面：与确认前未聚焦的输入框保持一致，彩虹光在它下方透出 */
+.visual-request-pill-surface {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+  z-index: 1;
+  /* 确认后与彩虹淡出同步：输入框不透明度 60% → 93% */
+  transition: background-color 500ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.visual-request-pill:active { cursor: grabbing; }
+
+/* 窗口还没收成小窗时（选区扫描/收缩过程中）拖动会被忽略，光标也别暗示可拖 */
+.visual-request-pill.is-drag-locked,
+.visual-request-pill.is-drag-locked:active { cursor: default; }
+
+.visual-request-pill::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--visual-custom-rainbow-angle),
+    rgba(255, 50, 60, .75),
+    rgba(180, 50, 255, .7),
+    rgba(30, 60, 200, .6),
+    rgba(255, 220, 50, .65),
+    rgba(255, 140, 30, .6),
+    rgba(255, 50, 60, .75)
+  );
+  animation: visualCustomRainbowFlow 12s linear infinite;
+  pointer-events: none;
+  filter: blur(8px);
+  z-index: -1;
+  /* 用户确认选择后彩虹单独淡出 0.5s（由 .is-settled 触发）；图标、文字与加载光边不受影响 */
+  transition: opacity 500ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.visual-request-pill.is-settled::before {
+  opacity: 0;
+}
+
+/* 与彩虹淡出同一段时间：输入框本体加深到 93%（比确认前更实，仍留一点通透） */
+.visual-request-pill.is-settled .visual-request-pill-surface {
+  background: rgba(255, 255, 255, 0.93);
+}
+
+.visual-request-pill-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.visual-request-pill-text {
+  position: relative;
+  z-index: 3;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  user-select: none;
+}
+
+/* ---- 输入框边缘的旋转加载光边（顺时针，上下快、两侧慢） ---- */
+.visual-loading-edge {
+  position: absolute;
+  inset: -60px;
+  /* 置于输入框白色磨砂面之下：内侧被遮住，只留下向框外溢出的光 */
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  /* 淡出：移除 is-active 时生效，130ms 收干净 */
+  transition: opacity 130ms cubic-bezier(0.23, 1, 0.32, 1);
+  /* 常驻合成层：它带着几层大半径的 SVG 模糊，回答结束渐隐时若临时升级/降级合成层，
+     会连带整块区域重绘（透明窗口下能看见闪）；锁住层状态就不会。 */
+  will-change: opacity;
+  --visual-edge-duration: 3s;
+}
+
+/* 淡入：加上 is-active 时生效，比淡出更快，出现得干脆 */
+.visual-loading-edge.is-active {
+  opacity: 1;
+  transition: opacity 110ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.visual-loading-edge svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  display: block;
+}
+
+/* 只有一层光边：四张模糊层各画同一条虚线，横截面靠模糊半径形成"内实外散"。
+   长度、位置、粗细全部由 visualEdgePulse 这一个动画驱动。三项参数取自原来三档：
+     长度（dasharray / dashoffset）取原"铺满层" —— 光边覆盖整条边绕行；
+     粗细（stroke-width）     取原"中段层" —— 圆头态宽、长边态窄；
+     浓度（opacity）          取原"中心层"的 .5（整条光带浓度统一，不再有中段/中心叠加）。 */
+.visual-loading-edge g > path {
+  fill: none;
+  stroke: #fff;
+  stroke-linecap: round;
+  opacity: .5;
+  animation: visualEdgePulse var(--visual-edge-duration) linear infinite;
+}
+
+/* 四层全部是模糊光（模糊由 SVG filter 完成，避免 CSS blur 被 SVG 视口裁出矩形边界）。
+   每层两个粗细档：band 用于长边态（细），wide 用于圆头态（粗，因为内圈被 clip-path
+   挖空，加粗只会向卡片外扩散，看起来就是"向外变粗"）。
+   四层宽度依次递增（.525 / 1.19 / 1.84 / 2.76），叠加后就形成一条中间实、外圈散的柔光。 */
+.visual-loading-edge .edge-head {
+  --edge-w-band: .263;
+  --edge-w-wide: 4;
+  stroke-width: var(--edge-w-band);
+}
+
+/* 中晕 */
+.visual-loading-edge .edge-mid {
+  --edge-w-band: .595;
+  --edge-w-wide: 9;
+  stroke-width: var(--edge-w-band);
+}
+
+/* 外晕 */
+.visual-loading-edge .edge-glow {
+  --edge-w-band: .92;
+  --edge-w-wide: 14;
+  stroke-width: var(--edge-w-band);
+}
+
+/* 最外层散光：盖住整条边时收得最窄，收拢到圆头上时最蓬松 */
+.visual-loading-edge .edge-halo {
+  --edge-w-band: 1.38;
+  --edge-w-wide: 21;
+  stroke-width: var(--edge-w-band);
+}
+
+/* 光带绕一圈，全程不停。路径被切成四个"区间"，总长 702.8：
+     上边 0→276   右端（两个半圆）276→351.4   下边 351.4→627.4   左端 627.4→702.8
+   长度一律按真实路径长度写（不依赖 pathLength 归一化，它在 Chromium 上不可靠）。
+   四个区间地位完全相同，光边长只按区间长度定，长区间细、短区间粗：
+     长区间（上下 276）：光边 = 整条底边 276 + 两端各占半圆的 1/6
+              （半圆 37.7 的一半？不 —— 这里"半圆端"指整个圆头 75.4，1/6 = 12.6）
+              = 276 + 12.6 + 12.6 = 301.2
+     短区间（左右 75.4）：光边 = 这个圆头的 2/3 = 50.3，居中放置
+   注意长区间的光边跨过了路径起点：上边态覆盖 [690.2,702.8] ∪ [0,288.6]，
+   也就是"上边整条 + 左端末尾 12.6 + 右端开头 12.6"，所以 offset 要写成 -690.2。
+   没有"区间态"这个阶段 —— 整圈就是光边的两个边缘各自按一条曲线前进，
+   所谓"区间态"只是两者速度差的结果。一圈分四段（每段 25%，各对应一条边）：
+     两个边缘规则相同 —— 通过上/下边的整个过程都在加速，通过左/右圆头则全程减速。
+   用带下限的幂曲线（下限取平均速度的 0.15，峰值 2.7，峰谷比 18 : 1）：
+     加速 s = 0.85u³ + 0.15u        速度 = 2.55u² + 0.15，先慢后快，永不停止
+     减速 s = 1-[0.85(1-u)³+0.15(1-u)]  速度 = 2.55(1-u)² + 0.15，先快后慢，永不停止
+   常数项就是"最小速度"，加它是为了"慢的时候别减到 0" —— 两个边缘任何时刻都在移动。
+   两端的 0.15 也正好相等，所以段与段之间照旧接得上，不会出现速度跳变。
+   调这个下限时有一条硬约束：一次项系数必须等于 1 - 三次项系数（这里 0.85 + 0.15 = 1），
+   否则每走完一段落不到区间终点；代价是下限抬高会让峰值（3 - 2×下限）同步下降。
+   想把最小速度再抬高一点，就改下面三处 0.15（注释与 s 表达式），再按同样的方式重算采样点。
+   长度与位置由两个硬条件锁定：
+     1) 长度极值：最长 301.2（底边整条 + 两端各占圆头的 1/6），最窄 50.3（圆头的 2/3）；
+     2) 极值时"光带中心"正好在区域正中 —— 最长时在上/下边中点，最窄时在左/右圆头中点。
+   条件 2 让中心每走 1/4 圈（175.7）完成一次极值切换，每段位移随之唯一确定：
+     长度增大段（上/下边）：前端 301.15、后端 50.25，中心 +175.7
+     长度减小段（左/右圆头）：前端 50.25、后端 301.15，中心 +175.7
+   采样点每段取 6 个子段（幂曲线弯曲较大，密一些才不会看出台阶）。
+   先写 animation-timing-function: linear 作为回退，紧随其后才是 linear(...)：
+   万一运行环境不认 linear()，会退回匀速，而不是整段动画失效。
+   因为区间态跨过了起点，offset 不能按"就近值"写，否则过渡中光带会绕路径跑半圈。
+   这里把整圈的 offset 写成单调递减（每段继续往前推），视觉状态与就近值完全等价：
+     -690.2 → -991.35(=288.55) → -1041.6(=338.8) → -1342.75(=639.95) → -1393(=690.2)
+   括号里是等价的路径位置，首尾一致，循环无缝。
+   变化的方向按一圈的顺序是：
+     上面(细) → 缩短+变粗 → 右边(粗) → 拉长+变细 → 下面(细) → 缩短+变粗 → 左边(粗) → 拉长+变细 → 上面
+   dashoffset 与 dasharray、stroke-width 同步插值，所以"滑动、伸缩、粗细"是同一件事；
+   内圈被 clip-path 挖空，加粗只朝卡片外扩散，观感即"向外变粗 / 向内变细"。
+   长边态取 301.2（整条底边 + 两端各占圆头的 1/6），圆头态取 50.3（圆头的 2/3）。 */
+@keyframes visualEdgePulse {
+  /* ── 第 1 段（上边）：两个边缘都走"加速"曲线，长度 50.3 → 301.2 ── */
+  0%      { stroke-dashoffset: -639.95;   stroke-dasharray: 50.3 652.5;    stroke-width: var(--edge-w-wide); }
+  4.17%   { stroke-dashoffset: -641.40;   stroke-dasharray: 57.56 645.24; }
+  8.33%   { stroke-dashoffset: -644.04;   stroke-dasharray: 70.74 632.06; }
+  12.5%   { stroke-dashoffset: -649.06;   stroke-dasharray: 95.78 607.02; }
+  16.67%  { stroke-dashoffset: -657.63;   stroke-dasharray: 138.58 564.22; }
+  20.83%  { stroke-dashoffset: -670.95;   stroke-dasharray: 205.08 497.72; }
+  25%     { stroke-dashoffset: -690.20;   stroke-dasharray: 301.2 401.6;   stroke-width: var(--edge-w-band); }
+  /* ── 第 2 段（右圆头）：两个边缘都走"减速"曲线，长度缩回 50.3 ── */
+  29.17%  { stroke-dashoffset: -805.57;   stroke-dasharray: 205.08 497.72; }
+  33.33%  { stroke-dashoffset: -885.39;   stroke-dasharray: 138.58 564.22; }
+  37.5%   { stroke-dashoffset: -936.77;   stroke-dasharray: 95.78 607.02; }
+  41.67%  { stroke-dashoffset: -966.81;   stroke-dasharray: 70.74 632.06; }
+  45.83%  { stroke-dashoffset: -982.64;   stroke-dasharray: 57.56 645.24; }
+  50%     { stroke-dashoffset: -991.35;   stroke-dasharray: 50.3 652.5;    stroke-width: var(--edge-w-wide); }
+  /* ── 第 3 段（下边）：同第 1 段 ── */
+  54.17%  { stroke-dashoffset: -992.80;   stroke-dasharray: 57.56 645.24; }
+  58.33%  { stroke-dashoffset: -995.44;   stroke-dasharray: 70.74 632.06; }
+  62.5%   { stroke-dashoffset: -1000.46;  stroke-dasharray: 95.78 607.02; }
+  66.67%  { stroke-dashoffset: -1009.03;  stroke-dasharray: 138.58 564.22; }
+  70.83%  { stroke-dashoffset: -1022.35;  stroke-dasharray: 205.08 497.72; }
+  75%     { stroke-dashoffset: -1041.60;  stroke-dasharray: 301.2 401.6;   stroke-width: var(--edge-w-band); }
+  /* ── 第 4 段（左圆头）：同第 2 段（100% 回到左圆头中点，循环无缝） ── */
+  79.17%  { stroke-dashoffset: -1156.97;  stroke-dasharray: 205.08 497.72; }
+  83.33%  { stroke-dashoffset: -1236.79;  stroke-dasharray: 138.58 564.22; }
+  87.5%   { stroke-dashoffset: -1288.17;  stroke-dasharray: 95.78 607.02; }
+  91.67%  { stroke-dashoffset: -1318.21;  stroke-dasharray: 70.74 632.06; }
+  95.83%  { stroke-dashoffset: -1334.04;  stroke-dasharray: 57.56 645.24; }
+  100%    { stroke-dashoffset: -1342.75;  stroke-dasharray: 50.3 652.5;    stroke-width: var(--edge-w-wide); }
+}
+
+/* ---- 半透明黑色回答框 ---- */
+.visual-answer-box {
+  position: relative;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  /* 元素内边距（当前为 0）。实色的位置与尺寸由 JS 内联样式决定：
+     左右收到输入框两侧半圆的切线处、上边缘落到输入框下底边之下 */
+  --visual-answer-bleed: 0px;
+  /* 裁剪半径：比雾的实际可见上限（约 44px）多留一段。
+     注意它只是保险，不是"最外限制" —— 视觉上的最外边界由 box-shadow 的衰减决定，
+     留这么宽是为了保证裁剪线切到的位置早就没有东西了，不会出现硬边。 */
+  --visual-glow-clip: 92px;
+  padding: var(--visual-answer-bleed);
+  border-radius: 22px;
+  /* 实色部分：纯黑、完全不透明 */
+  background: #000;
+  color: #f4f4f6;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  /* 必须在输入框之下：.visual-request-slot 是 z-index 2（同一个层叠上下文里），
+     所以黑框连同它的气雾都画在彩虹输入框后面 —— 看上去就是黑框把输入框包住。 */
+  z-index: 1;
+  /* 常驻合成层：framer-motion 的淡入结束后会摘掉 will-change，元素从合成层降级回普通绘制，
+     透明窗口下这两条渲染路径的阴影/裁剪模糊结果并不完全一致，看起来就是"原地闪一下"。
+     让合成状态从头到尾不变，这次重绘就不会发生。
+     transform 也一并锁住：出现动画带缩放，动画结束若撤掉 transform 又会切一次渲染路径。 */
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+  /* 气雾：实色为纯黑，首层是同色的 1px 补边（盖住合成层在直边与圆角处的抗锯齿缝，
+     同色所以不会形成描边）。前 4 层是内段，"纯黑 → 半黑"一直保持到约 44px；
+     后 3 层是外段，"半黑 → 透明"压缩在很窄的一段里急速收掉。
+     最外可见上限约 44px。实色与输入框左边缘对齐（见 ANSWER_LEFT_INSET），
+     所以这层雾在左侧/上侧也是往输入框外铺 44px —— 雾与实色一起"包"住输入框。 */
+  box-shadow:
+    0 0 0 1px #000,
+    0 0 18px 9px rgba(8, 8, 11, 0.92),
+    0 0 32px 17px rgba(8, 8, 11, 0.9),
+    0 0 46px 21px rgba(8, 8, 11, 0.84),
+    0 0 50px 18px rgba(8, 8, 11, 0.52),
+    0 0 54px 16px rgba(8, 8, 11, 0.18),
+    0 0 58px 15px rgba(8, 8, 11, 0.025);
+  /* 浓度与半径都不动，只把外扩 35px 之外的部分裁掉（圆角跟着一起外扩） */
+  clip-path: inset(
+    calc(var(--visual-glow-clip) * -1)
+    round calc(22px + var(--visual-glow-clip))
+  );
+}
+
+.visual-answer-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 22px;
+  /* 顶部要给"压在黑框上的输入框"让位：44（输入框高）+ 12（间隙） */
+  padding: 56px 16px 16px;
+  scrollbar-gutter: stable;
+}
+
+.visual-answer-scroll::-webkit-scrollbar { width: 12px; }
+.visual-answer-scroll::-webkit-scrollbar-track { background: transparent; }
+.visual-answer-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.26);
+  border: 4px solid transparent;
+  border-radius: 8px;
+  background-clip: content-box;
+}
+.visual-answer-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.44);
+  border: 4px solid transparent;
+  background-clip: content-box;
+}
+
+.visual-answer-text {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
+  will-change: transform, opacity;
+}
+
+/* ---- 右下角弧线放大/缩小拖拽条 ---- */
+.visual-answer-resize {
+  position: absolute;
+  /* 绝对定位的参照是 padding box，用负值抵消一圈 bleed，贴回实色右下角 */
+  right: calc(var(--visual-answer-bleed) * -1);
+  bottom: calc(var(--visual-answer-bleed) * -1);
+  width: 24px;
+  height: 24px;
+  cursor: nwse-resize;
+  z-index: 4;
+}
+
+.visual-answer-resize::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 12px;
+  height: 12px;
+  border-right: 2.8px solid rgba(255, 255, 255, 0.72);
+  border-bottom: 2.8px solid rgba(255, 255, 255, 0.72);
+  border-bottom-right-radius: 12px;
+  transition: border-color 160ms ease;
+}
+
+.visual-answer-resize:hover::after { border-color: rgba(255, 255, 255, 0.92); }
+
+/* ---- 回答卡片系统 ---- */
+.visual-card {
+  box-sizing: border-box;
+  width: calc(100% - 14px);
+  margin: 0 auto 10px;
+  border-radius: 10px;
+  /* 较小的半透明，配 Windows 窗口式的浅灰细边与极轻的投影 */
+  background: rgba(233, 233, 237, 0.72);
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #1b1b1d;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  user-select: text;
+  -webkit-user-select: text;
+  will-change: transform, opacity;
+}
+
+.visual-card:last-child { margin-bottom: 0; }
+
+.visual-text-card {
+  height: auto;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.68;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.visual-link-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 66px;
+  padding: 8px;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.visual-link-card:active { transform: scale(0.985); }
+.visual-link-card:hover { background: rgba(246, 246, 248, 0.86); }
+
+.visual-link-thumb {
+  flex: 0 0 auto;
+  width: 84px;
+  height: 50px;
+  border-radius: 7px;
+  object-fit: cover;
+  object-position: center;
+  background: linear-gradient(135deg, rgba(120, 120, 130, 0.5), rgba(60, 60, 70, 0.55));
+  display: block;
+}
+
+.visual-link-thumb-fallback {
+  flex: 0 0 auto;
+  width: 84px;
+  height: 50px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(135deg, #7a7a86, #4a4a55);
+  text-transform: uppercase;
+}
+
+.visual-link-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+}
+
+.visual-link-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #17171a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.visual-link-url {
+  font-size: 12px;
+  color: #6b6b73;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visual-loading-edge g > path { animation-duration: 6s; }
+  .visual-request-pill,
+  .visual-request-pill::before,
+  .visual-loading-edge { transition-duration: 0ms; }
+}

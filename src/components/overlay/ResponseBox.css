@@ -1,0 +1,49 @@
+.response-box-wrapper {
+  width: 100%;
+}
+
+.response-box {
+  position: relative;
+  border-radius: 14px;
+  /* 20/24 → 10/12：叠在 .dony-result-stack 的内边距之上，原来两层加起来近 42px 太空 */
+  padding: 10px 12px;
+  /* 高度上限与滚动都交给外层 .dony-result-scroll（正文 + 卡片共用一个滚动区） */
+  max-height: none;
+  min-height: 0;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.response-box::-webkit-scrollbar { width:6px }
+.response-box::-webkit-scrollbar-track { background:transparent }
+.response-box::-webkit-scrollbar-thumb { background:var(--dony-scroll-thumb); border-radius:3px }
+
+.response-content {
+  position: relative; z-index: 1;
+  /* 跟随系统深浅色：亮色黑字 / 深色白字（见 acrylic.css 的变量） */
+  color: var(--dony-ink);
+  font-size: 15px; line-height: 1.7;
+}
+
+.response-para {
+  margin-bottom: 10px;
+  white-space: pre-wrap; word-break: break-word;
+  will-change: transform, opacity, filter;
+}
+
+.response-para:last-child {
+  margin-bottom: 0;
+}
+
+.response-placeholder { color:var(--dony-ink-faint); font-style:italic }
+
+.streaming-cursor {
+  display: inline-block;
+  width: 2px; height: 18px;
+  background: #C44DFF;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 0.6s ease-in-out infinite;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }

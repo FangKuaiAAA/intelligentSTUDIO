@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="ImagePlayground.Views.CreatePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:ImagePlayground.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="Root" Padding="30,6,30,16" RowSpacing="6"
+          KeyboardAcceleratorPlacementMode="Hidden">
+        <Grid.KeyboardAccelerators>
+            <KeyboardAccelerator Key="Escape" Invoked="OnEscape" />
+        </Grid.KeyboardAccelerators>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <!-- 画布占据剩余高度 -->
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <controls:SelectedElementStrip x:Name="Strip" Grid.Row="0" Height="62" Margin="0,2,0,0"
+                                       Changed="Strip_Changed" />
+
+        <Grid x:Name="CanvasHost" Grid.Row="1" Margin="0,2,0,2" SizeChanged="CanvasHost_SizeChanged">
+            <controls:CanvasOrb x:Name="Orb" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Grid>
+
+        <controls:ElementSuggestionPanel x:Name="Suggestions" Grid.Row="2" Margin="0,4,0,8" />
+
+        <StackPanel Grid.Row="3" MaxWidth="1000" HorizontalAlignment="Center" Spacing="8"
+                    MinWidth="640">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <controls:RainbowInput x:Name="PromptInput" Grid.Column="0" MinWidth="440"
+                                       Submitted="PromptInput_Submitted" />
+
+                <ComboBox x:Name="StyleBox" Grid.Column="1" Width="136" Height="44"
+                          CornerRadius="10" FontSize="13" VerticalAlignment="Center" />
+
+                <Button x:Name="GenerateButton" Grid.Column="2" Content="启动" MinWidth="112"
+                        Style="{StaticResource PillButtonStyle}" Click="Generate_Click" />
+            </Grid>
+
+            <TextBlock x:Name="StatusText" HorizontalAlignment="Center"
+                       Style="{StaticResource TertiaryTextStyle}" Text="" />
+        </StackPanel>
+    </Grid>
+</UserControl>

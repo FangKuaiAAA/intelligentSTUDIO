@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="PhotoEditor.Views.FilterPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Padding="20,4,18,24" Spacing="20">
+
+            <StackPanel Spacing="10">
+                <TextBlock Text="预设" Style="{StaticResource SectionTitleStyle}" />
+                <Grid ColumnSpacing="6" RowSpacing="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <RadioButton GroupName="PresetGroup" x:Name="PresetNone" Grid.Row="0" Grid.Column="0" Content="原片"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnPresetClicked" Tag="none" />
+                    <RadioButton GroupName="PresetGroup" x:Name="PresetVivid" Grid.Row="0" Grid.Column="1" Content="鲜明"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnPresetClicked" Tag="vivid" />
+                    <RadioButton GroupName="PresetGroup" x:Name="PresetSoft" Grid.Row="0" Grid.Column="2" Content="柔和"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnPresetClicked" Tag="soft" />
+
+                    <RadioButton GroupName="PresetGroup" x:Name="PresetMono" Grid.Row="1" Grid.Column="0" Content="黑白"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnPresetClicked" Tag="mono" />
+                    <RadioButton GroupName="PresetGroup" x:Name="PresetVintage" Grid.Row="1" Grid.Column="1" Content="复古"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnPresetClicked" Tag="vintage" />
+                    <RadioButton GroupName="PresetGroup" x:Name="PresetCool" Grid.Row="1" Grid.Column="2" Content="冷调"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnPresetClicked" Tag="cool" />
+
+                    <RadioButton GroupName="PresetGroup" x:Name="PresetWarm" Grid.Row="2" Grid.Column="0" Content="暖调"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnPresetClicked" Tag="warm" />
+                    <RadioButton GroupName="PresetGroup" x:Name="PresetDrama" Grid.Row="2" Grid.Column="1" Content="戏剧"
+                                  Style="{StaticResource SegmentItemStyle}" Click="OnPresetClicked" Tag="drama" />
+                </Grid>
+            </StackPanel>
+
+            <StackPanel Spacing="14">
+                <TextBlock Text="调整" Style="{StaticResource SectionTitleStyle}" />
+
+                <StackPanel Spacing="4">
+                    <Grid>
+                        <TextBlock Text="亮度" FontSize="12" Foreground="{StaticResource AppTextSecondary}" />
+                        <TextBlock x:Name="BrightnessLabel" Text="0" FontSize="12" HorizontalAlignment="Right"
+                                   Foreground="{StaticResource AppTextTertiary}" />
+                    </Grid>
+                    <Slider x:Name="BrightnessSlider" Minimum="-100" Maximum="100" Value="0"
+                            ValueChanged="OnSliderChanged" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <Grid>
+                        <TextBlock Text="对比度" FontSize="12" Foreground="{StaticResource AppTextSecondary}" />
+                        <TextBlock x:Name="ContrastLabel" Text="0" FontSize="12" HorizontalAlignment="Right"
+                                   Foreground="{StaticResource AppTextTertiary}" />
+                    </Grid>
+                    <Slider x:Name="ContrastSlider" Minimum="-100" Maximum="100" Value="0"
+                            ValueChanged="OnSliderChanged" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <Grid>
+                        <TextBlock Text="饱和度" FontSize="12" Foreground="{StaticResource AppTextSecondary}" />
+                        <TextBlock x:Name="SaturationLabel" Text="0" FontSize="12" HorizontalAlignment="Right"
+                                   Foreground="{StaticResource AppTextTertiary}" />
+                    </Grid>
+                    <Slider x:Name="SaturationSlider" Minimum="-100" Maximum="100" Value="0"
+                            ValueChanged="OnSliderChanged" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <Grid>
+                        <TextBlock Text="色温" FontSize="12" Foreground="{StaticResource AppTextSecondary}" />
+                        <TextBlock x:Name="TemperatureLabel" Text="0" FontSize="12" HorizontalAlignment="Right"
+                                   Foreground="{StaticResource AppTextTertiary}" />
+                    </Grid>
+                    <Slider x:Name="TemperatureSlider" Minimum="-100" Maximum="100" Value="0"
+                            ValueChanged="OnSliderChanged" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <Grid>
+                        <TextBlock Text="锐化" FontSize="12" Foreground="{StaticResource AppTextSecondary}" />
+                        <TextBlock x:Name="SharpenLabel" Text="0" FontSize="12" HorizontalAlignment="Right"
+                                   Foreground="{StaticResource AppTextTertiary}" />
+                    </Grid>
+                    <Slider x:Name="SharpenSlider" Minimum="0" Maximum="100" Value="0"
+                            ValueChanged="OnSliderChanged" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <Grid>
+                        <TextBlock Text="暗角" FontSize="12" Foreground="{StaticResource AppTextSecondary}" />
+                        <TextBlock x:Name="VignetteLabel" Text="0" FontSize="12" HorizontalAlignment="Right"
+                                   Foreground="{StaticResource AppTextTertiary}" />
+                    </Grid>
+                    <Slider x:Name="VignetteSlider" Minimum="0" Maximum="100" Value="0"
+                            ValueChanged="OnSliderChanged" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+                <Button x:Name="ApplyButton" Content="应用调整" Style="{StaticResource PillButtonStyle}"
+                        HorizontalAlignment="Stretch" Click="OnApply" />
+                <Button Content="重置" Style="{StaticResource GlassPillButtonStyle}"
+                        HorizontalAlignment="Stretch" Click="OnReset" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

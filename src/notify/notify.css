@@ -1,0 +1,187 @@
+/* 右下角通知卡片：Windows 通知的版式 + intelligentSTUDIO 的彩虹光晕。
+   窗口尺寸与 electron/main.js 的 NOTIFY_WIDTH / NOTIFY_CARD_HEIGHT / NOTIFY_PAD 对齐：
+   400 × (20×2 + 104)。四周留白用于彩虹渐变收尾，避免窗口边缘硬裁切。 */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+}
+
+.notify-root {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  font-family: 'Segoe UI Variable', 'Microsoft YaHei UI', sans-serif;
+  color: #1b1b1b;
+}
+
+.notify-card {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  height: 104px;
+  border-radius: 16px;
+  isolation: isolate;
+  cursor: default;
+  will-change: transform, opacity;
+}
+
+/* 光晕只向外延伸一点，靠模糊形成渐变；窗口留白 20px 大于 4+12px 的外扩，不会被硬切 */
+.notify-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 20px;
+  background: conic-gradient(
+    from var(--notify-angle),
+    rgba(10, 132, 255, 0.9),
+    rgba(191, 90, 242, 0.85),
+    rgba(255, 55, 95, 0.85),
+    rgba(255, 159, 10, 0.85),
+    rgba(10, 132, 255, 0.9)
+  );
+  filter: blur(12px) hue-rotate(var(--notify-hue, 0deg));
+  opacity: 0.5;
+  z-index: 0;
+  animation: notifyGlowSpin 22s linear infinite;
+  transition: opacity 0.25s ease;
+}
+
+.notify-summary .notify-glow {
+  opacity: 0.24;
+}
+
+.notify-card:hover .notify-glow {
+  opacity: 0.62;
+}
+
+.notify-surface {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  padding: 10px 14px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(30px) saturate(1.35);
+  -webkit-backdrop-filter: blur(30px) saturate(1.35);
+  /* 1px 灰色描边，对齐 WinUI 卡片的 CardStrokeColorDefault 观感 */
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.14),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.09);
+}
+
+.notify-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 18px;
+  color: #4a4a4a;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.notify-bell {
+  display: inline-flex;
+  align-items: center;
+  color: #1b1b1b;
+}
+
+.notify-badge {
+  padding: 2px 8px 3px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: #1b1b1b;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.notify-app {
+  margin-left: auto;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #1b1b1b;
+}
+
+.notify-time {
+  font-variant-numeric: tabular-nums;
+  color: #1b1b1b;
+  opacity: 0.75;
+}
+
+.notify-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notify-body {
+  font-size: 13px;
+  line-height: 18px;
+  color: #1b1b1b;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@property --notify-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes notifyGlowSpin {
+  from { --notify-angle: 0deg; }
+  to { --notify-angle: 360deg; }
+}
+
+/* 深色模式：卡片表面转深、文字与图标反转为浅色，彩虹光边保留 */
+@media (prefers-color-scheme: dark) {
+  .notify-root { color: #f3f3f3; }
+
+  .notify-surface {
+    background: rgba(30, 30, 30, 0.84);
+    box-shadow:
+      0 14px 32px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  }
+
+  .notify-head { color: #b5b5b5; }
+  .notify-bell { color: #f3f3f3; }
+
+  .notify-badge {
+    color: #f3f3f3;
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  }
+
+  .notify-app { color: #f3f3f3; }
+  .notify-time { color: #f3f3f3; opacity: 0.7; }
+  .notify-title { color: #ffffff; }
+  .notify-body { color: #d6d6d6; }
+
+  .notify-glow { opacity: 0.55; }
+  .notify-summary .notify-glow { opacity: 0.28; }
+  .notify-card:hover .notify-glow { opacity: 0.68; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notify-glow { animation-duration: 60s; }
+}

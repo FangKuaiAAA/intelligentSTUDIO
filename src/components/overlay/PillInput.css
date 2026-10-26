@@ -1,0 +1,285 @@
+.pill-input-wrapper {
+  position: relative;                /* 输入建议要绝对定位到药丸左端上方（不参与布局） */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.pill-input-wrapper.follow-up {
+  margin-top: 0;
+}
+
+/* ===== 启动彩排的"预热副本"：只绘制、绝不交互 =====
+   它被放在一个近乎全透明的窗口里（0.01 不透明度）真实绘制一遍，付掉键入模式首唤醒的
+   首帧成本（左侧图标的 conic 彩虹 + blur + 混合模式、送信键 SVG、字体、首次执行）。
+   ⚠ 必须挡掉所有指针事件：药丸内部的 .pill-send / .pill-suggest-item 自己写了
+     pointer-events:auto，不挡的话会在屏幕上留一块"看不见却点得到"的死区。 */
+.pill-prewarm,
+.pill-prewarm * {
+  pointer-events: none !important;
+}
+
+/* 宽度由 JS 按文字量出来（形变），所以这里不写 width:100%。
+   两侧内边距 = 控件区宽度（左：线描图标 / 右：发送键）：控件落在两端圆角圆心，
+   文字就被夹在两个控件之间 —— 超长时正好在这两条边界上被裁切。 */
+.pill-input-container {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: transparent;           /* 材质由 App.css 的统一药丸/亚克力层提供 */
+  border-radius: 999px;
+  /* 14 → 12：药丸整体略收（首屏那颗高度随之从 ~49 降到 ~45，追问那颗与它保持一致） */
+  padding: 12px 50px 12px 50px;
+}
+
+/* 追问药丸：没有左侧图标 → 左右内边距对称，文字**居中**输入（保持它原来的观感）。
+   ⚠ 只有首屏那颗才有"左侧图标 + 文字左对齐 + 在图标右缘裁切"这套规格。 */
+.pill-input-container.follow-up {
+  padding: 12px 22px;      /* 左右对称、且随返回框一起收小（原来是 26） */
+  justify-content: center;
+}
+.pill-input-container.follow-up .pill-input {
+  text-align: center;
+}
+
+/* 左侧提示图标（线描六边形包线描圆形）。
+   固定 50px 宽的方框 + 居中 → 图标中心正好在 x = 25px ≈ 药丸左端半圆的圆心。
+   颜色跟输入文字一致（--dony-ink：浅色黑 / 深色白）。 */
+.pill-input-icon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dony-ink);
+  pointer-events: none;
+}
+
+/* ===== 图标背后的彩虹灯光 =====
+   一团"锥形彩虹渐变"垫在线描**正背后**（不是外围的环）：
+     ① 不镂空 —— 中心最亮，整团就是"彩色灯光"本身；
+     ② 模糊（8px）+ 长渐隐遮罩 → 边界化开成光雾，看不到任何"一圈边"。
+   尺寸只比线描**稍大一点点**（34px vs 图标 30px 的框、实际线描约 19px）。
+   浓度走**单调平滑的长渐隐**（9 段：1 → .9 → .78 → .64 → .48 → .33 → .19 → .08 → 0）：
+   模拟"微弱的光自然消散" —— 中心不发实、越往外越淡，全程没有台阶。
+   ⚠ 不要再做"满浓度平台 + 中段陡降"：那等于在半径上画出一圈**看得见的边界**（试过，很硬）。
+   ⚠ 遮罩**必须写 `closest-side`**：`radial-gradient(circle, …)` 默认是 farthest-corner，
+      100% 会落在盒子对角（24px）而不是边长一半（17px）——于是元素边缘处遮罩还剩 ~0.33，
+      光在元素的圆形边界上被"一刀切"掉，这就是那道明显界限的来源。
+   ⚠ 光必须在**元素边界之前**就衰减到 0：现在 0 落在 ~65%（约 14px 半径），
+      往外还留一段全空的余量，所以元素那圈边界上什么都切不到。
+      元素特意放大到 44px，就是给这段"归零尾巴"留空间。
+   ⚠ 模糊在遮罩**之前**生效，别指望 blur 去软化遮罩的边界（要软化只能改遮罩）。
+   定位用 inset:0 + margin:auto 居中 —— 这样 transform 留给旋转动画，不会打架。
+   旋转走合成器、44px 里只有中间约 28px 可见，代价可忽略。
+   线描仍是 currentColor（浅色黑 / 深色白），光只垫在它下面。 */
+.pill-icon-glow {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  z-index: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg,
+    #ff3b30, #ff6a00, #ff9500, #ffc400, #ffd60a, #a8e10c,
+    #34c759, #00d9a3, #00e0ff, #3aa0ff, #4d6bff, #8b5cf6,
+    #b44dff, #ff2d9b, #ff3b30);
+  filter: blur(8px) saturate(1.22);
+  -webkit-mask-image: radial-gradient(circle closest-side,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.96) 12%,
+    rgba(0, 0, 0, 0.86) 25%,
+    rgba(0, 0, 0, 0.7) 38%,
+    rgba(0, 0, 0, 0.5) 50%,
+    rgba(0, 0, 0, 0.32) 60%,
+    rgba(0, 0, 0, 0.17) 70%,
+    rgba(0, 0, 0, 0.07) 80%,
+    rgba(0, 0, 0, 0.02) 90%,
+    rgba(0, 0, 0, 0) 100%);
+  mask-image: radial-gradient(circle closest-side,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.96) 12%,
+    rgba(0, 0, 0, 0.86) 25%,
+    rgba(0, 0, 0, 0.7) 38%,
+    rgba(0, 0, 0, 0.5) 50%,
+    rgba(0, 0, 0, 0.32) 60%,
+    rgba(0, 0, 0, 0.17) 70%,
+    rgba(0, 0, 0, 0.07) 80%,
+    rgba(0, 0, 0, 0.02) 90%,
+    rgba(0, 0, 0, 0) 100%);
+  opacity: 0.52;                    /* 浅色：亮心恢复可见，外圈仍一路淡到 0 */
+  animation: pillIconArc 9s linear infinite;
+  will-change: transform;
+}
+
+/* 线描压在上面，才像"被彩虹照着"的线稿 */
+.pill-input-icon svg {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes pillIconArc {
+  from { transform: rotate(0deg) }
+  to   { transform: rotate(360deg) }
+}
+
+/* 深色：药丸是深底，用叠加混合让彩光真的"发光"（浅色下不能用：
+   plus-lighter 叠在白底上会直接变白、什么都看不见） */
+@media (prefers-color-scheme: dark) {
+  .pill-icon-glow {
+    opacity: 0.6;
+    mix-blend-mode: plus-lighter;
+    filter: blur(9px) saturate(1.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill-icon-glow { animation: none }
+}
+
+.pill-input {
+  border: none; outline: none; background: transparent;
+  font-size: 16px; color: var(--dony-ink);
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;                      /* 允许被压缩，才能让文字左移并被裁切 */
+  text-align: left;                  /* 文字从左到右输入 */
+  /* 文字过长：前面的文字左移，并从图标右缘这条边界上消失（裁切） */
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+}
+
+.pill-input::placeholder { color: var(--dony-ink-faint) }
+
+.pill-measure {
+  position: absolute; visibility: hidden; white-space: pre;
+  font-size: 16px;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  pointer-events: none;
+}
+
+/* ===== 右侧发送键 =====
+   位置镜像左侧图标：同样是 50px 宽的方框 + 居中 → 按钮中心落在药丸右端半圆的圆心。
+   蓝色圆底 + 白色圆角向上箭头；点它 = 按回车（逻辑见 PillInput.tsx 的 onSubmit）。 */
+.pill-send {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  /* 箭头本身就是蓝色；**没有圆形外框、没有底色**（原来那个蓝圆已去掉） */
+  color: #0A84FF;
+}
+.pill-send > svg {
+  display: block;
+  transition: transform 0.16s ease, filter 0.16s ease;
+}
+.pill-send:hover > svg { filter: brightness(1.12) }
+.pill-send:active > svg { transform: scale(0.9) }
+
+/* ===== 输入建议（首次键入对话）=====
+   绝对定位在药丸**左端上方**：不参与布局 → 不会改变卡片的形变尺寸。
+   挡板规格：半透明、**无模糊**、**无边缘细线**、紧贴文字（只留一点内边距）。 */
+.pill-suggest-list {
+  position: absolute;
+  /* 往右挪一点：药丸左端是**圆角头**，贴着 left:0 放的话，建议升到药丸上沿那一段
+     会从圆角外侧露出半个身子（看起来像"从左边冒出来"，而不是从底下钻出来）。
+     右移 20px 后，整条的飞行路径都落在药丸的轮廓之内。 */
+  left: 20px;
+  bottom: calc(100% + 10px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  /* ⚠ 故意**不设 z-index**：药丸（.pill-input-container）在 DOM 里排在它之后、自身又是
+     relative，所以药丸天然盖在建议之上 —— 这正是"从输入框下方（图层下面）飞出来"要的层级。
+     之前写了 z-index:5，等于把建议抬到药丸上面，飞出来是"横穿"药丸而不是从它底下钻出来。 */
+}
+.pill-suggest-item {
+  appearance: none;
+  /* ⚠ 必须显式 auto：覆盖层容器是 pointer-events:none，而全屏光边（.rainbow-edges，
+     它是 .overlay-container 的直接子元素）被 `>*` 规则设成了 auto、把整屏点击都吃掉 ——
+     实测 elementFromPoint 在建议中心命中的是 rainbow-edges，也就是"点不到"。
+     自己开一扇门就解决了（同 .pill-send 的处理）。 */
+  pointer-events: auto;
+  border: none;                       /* 无边缘细线 */
+  /* 材质改由 <AcrylicLayer> 铺在文字下面（真正的"磨砂壁纸"），所以这里：
+     · 不画底色（background: transparent）；
+     · 不用 backdrop-filter —— 覆盖层是整屏透明窗，窗口内没有可模糊的东西，
+       它只会得到"半透明白"、再白搭一份每帧成本（acrylic.css 开头就写明了这个坑）。 */
+  position: relative;                 /* 亚克力层是 absolute inset:0，需要定位宿主 */
+  background: transparent;
+  /* 飞行带 transform → Chromium 的 overflow + border-radius 圆角裁剪会失效，
+     改用 clip-path 把胶囊形状钉死（里面的亚克力层也一起被裁到胶囊里）。 */
+  clip-path: inset(0 round 999px);
+  /* 材质与"正常卡片"完全统一：这里**不覆盖任何亚克力变量** ——
+     直接吃全局那一套（tint 浅 0.82 / 深 0.90、噪点、排他混合），模糊半径也用卡片档。
+     唯一不统一的是那条边缘细线，见文件末尾的 .dony-acrylic::after 覆盖。 */
+  box-shadow: none;                   /* 不给阴影，否则又像"有边" */
+  border-radius: 999px;               /* 胶囊：左右两侧整条边都是圆角 */
+  padding: 6px 11px;                  /* 紧贴文字，但仍留一点距离 */
+  /* 文字用主题墨色本身（浅色黑 / 深色白），**不额外降透明度**；
+     要做"更实"的是它下面那块挡板（见上面的 background）。 */
+  color: var(--dony-ink);
+  font-size: 14px;
+  line-height: 1.25;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  /* 展开/收起由 .is-in / .is-out 两个类驱动
+     （时长必须与 PillInput.tsx 顶部的 SG_IN_MS / SG_OUT_MS 一致）
+     起点在"输入框下方"：每条要往下偏多少由 JS 量好写进 --sg-from（见 PillInput.tsx），
+     默认值只是兜底。 */
+  /* 纯位移、**不做淡入淡出**：起点就在药丸身内（图层下方），由药丸把它挡住，
+     所以看不到"凭空出现"，只见它从输入框底下钻出来。 */
+  transform: translateY(var(--sg-from, 26px));
+  visibility: hidden;                 /* 量出真实起点之前先不画（否则第一帧会闪一下） */
+  transition: transform 560ms cubic-bezier(0.33, 1, 0.68, 1);
+  transition-delay: var(--sg-in-delay, 0ms);
+  will-change: transform;
+}
+/* 挂载那一帧先关掉过渡：JS 会在同一帧把每条的真实起点写进 --sg-from。
+   这时若过渡是开着的，就会先按兜底值启一段、随后再被改写 → 起飞看着"不对劲"
+   （收回那边用的是已经定好的值，所以一直正常）。等下面 is-in 打开，才是真正的一次过渡。 */
+.pill-suggest-list.is-mount .pill-suggest-item {
+  transition: none;
+}
+/* 展开：从输入框底下升起（最靠近输入框的那条先动，靠 --sg-in-delay 错峰） */
+.pill-suggest-list.is-in .pill-suggest-item {
+  transform: translateY(0);
+  visibility: visible;
+}
+/* 收起：展开的**反向**（原路退回药丸底下），更慢，且顺序反过来（最上面那条先收） */
+.pill-suggest-list.is-out .pill-suggest-item {
+  transform: translateY(var(--sg-from, 26px));
+  visibility: visible;
+  transition-duration: 620ms;         /* 必须与 SG_OUT_MS 一致 */
+  transition-delay: var(--sg-out-delay, 0ms);
+}
+
+/* 边缘线**不加**：亚克力默认会在最上面画一条 inset 细线（acrylic.css 的 .dony-acrylic::after），
+   挡板不要它 —— 需求就是"淡色块、无边框"。浅色/深色都不加。 */
+.pill-suggest-item .dony-acrylic::after {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill-suggest-item { transition-duration: 1ms !important }
+}

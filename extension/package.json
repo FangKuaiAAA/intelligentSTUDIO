@@ -1,0 +1,30 @@
+{
+  "name": "intelligentstudio-edge-extension",
+  "private": true,
+  "version": "1.3.3",
+  "description": "Visual intelligence（Edge 扩展）：浮窗内使用视觉智能，并向 Dony 提供标签页/收藏夹的读取与整理能力",
+  "type": "module",
+  "scripts": {
+    "build": "npm run build:ext && npm run build:content",
+    "build:ext": "vite build --mode ext",
+    "build:content": "vite build --mode content",
+    "typecheck": "tsc --noEmit",
+    "icons": "python scripts/make-icons.py",
+    "smoke:popup": "node scripts/smoke-popup.mjs",
+    "smoke:visual": "node scripts/smoke-visual.mjs",
+    "smoke:organize": "node scripts/smoke-organize.mjs",
+    "smoke:delete": "node scripts/smoke-delete.mjs",
+    "smoke:page": "node scripts/smoke-page.mjs",
+    "test:match": "node scripts/test-match.mjs"
+  },
+  "dependencies": {
+    "framer-motion": "^11.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.0",
+    "typescript": "^5.5.0",
+    "vite": "^5.4.0"
+  }
+}

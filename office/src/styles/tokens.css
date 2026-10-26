@@ -1,0 +1,125 @@
+/* 设计令牌：窗格是窄而长的密集界面，一切尺寸都按 8px 栅格收敛 */
+
+:root {
+  --st-font: '思源黑体', 'Segoe UI Variable Text', 'Helvetica Neue', system-ui, sans-serif;
+
+  --st-bg: #fbfbfd;
+  --st-card: #ffffff;
+  --st-card-2: #f4f4f7;
+  --st-text: #1d1d1f;
+  --st-text-2: #6e6e73;
+  --st-text-3: #8e8e93;
+  --st-hairline: rgba(0, 0, 0, 0.07);
+  --st-hairline-strong: rgba(0, 0, 0, 0.12);
+
+  --st-blue: #0a84ff;
+  --st-indigo: #5e5ce6;
+  --st-purple: #bf5af2;
+  --st-green: #34c759;
+  --st-orange: #ff9f0a;
+  --st-red: #ff3b30;
+
+  --st-r-card: 14px;
+  --st-r-cell: 10px;
+  --st-r-pill: 999px;
+
+  --st-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --st-shadow-lift: 0 4px 14px rgba(0, 0, 0, 0.08);
+
+  /* 动效令牌：出现 180 / 飞入 240（快速起步 + 末尾减速）/ 隐藏 160 */
+  --st-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --st-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --st-t-in: 180ms;
+  --st-t-fly: 240ms;
+  --st-t-out: 160ms;
+
+  /* 彩虹（与桌面端同一组色相，避免两处观感不一致） */
+  --st-rainbow: conic-gradient(
+    from 0deg,
+    rgba(255, 107, 157, 0.85),
+    rgba(196, 77, 255, 0.8),
+    rgba(77, 138, 255, 0.78),
+    rgba(77, 255, 217, 0.75),
+    rgba(255, 216, 77, 0.8),
+    rgba(255, 107, 157, 0.85)
+  );
+
+  --st-identity-h: 40px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--st-font);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--st-text);
+  background: var(--st-bg);
+  -webkit-font-smoothing: antialiased;
+  /* 窗格由 Office 托管滚动，body 自身不允许出现第二根滚动条 */
+  overflow: hidden;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+input,
+select {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* 键盘可达性：只在键盘聚焦时描边，鼠标点击不画圈。
+   刻意**不包含 input**：Chromium 对文本框无论鼠标还是键盘聚焦都会命中
+   :focus-visible，把它包含进来等于给输入框永久套一圈蓝框。
+   输入框的聚焦提示由药丸外圈（彩虹变亮）承担。 */
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--st-blue);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.14);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --st-t-in: 1ms;
+    --st-t-fly: 1ms;
+    --st-t-out: 1ms;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --st-bg: #ffffff;
+    --st-card-2: #f2f2f5;
+  }
+}
