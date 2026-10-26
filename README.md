@@ -61,6 +61,31 @@ Dony 的每次操作结果以**卡片**呈现——**每张卡片就是被操作
    - 计时器 / 闹钟：副标题实时走秒
 6. **图标规范**：24×24 画布、stroke 1.7、圆头线端、`currentColor`，几何按 SF Symbols 骨架重画，保证同一排视觉重量一致。
 
+## 照片编辑器
+
+照片编辑器是独立的 WinUI3 应用（`photo-app`），提供四项核心能力：
+
+### 消除
+
+点选画面中的物体，自动识别其轮廓并擦除。**轮廓识别依赖 SAM（Segment Anything Model）**：编码器提取图像特征，解码器按点选提示输出精确掩码。
+
+擦除内容有两种生成方式：
+
+- **内置模型**：本地 Moebius 修补模型直接补全被擦除区域（离线可用）
+- **API 接口**：调用配置的图像编辑模型（OpenAI 兼容接口）生成填充内容
+
+### 扩展
+
+以原图为基准向外扩展画布，由生成式模型补全新增区域，用于调整构图或补足边缘。
+
+### 重构
+
+由**单张照片**生成 3D 点云图（SHARP 模型，Node + onnxruntime-node + WebGPU 推理）：
+
+1. 单图重建为高斯点云
+2. 用户选择新的观察视角
+3. 生成式模型补齐视角变换后的空缺区域，重新完成照片构图
+
 ## 界面预览
 
 <p align="center">
@@ -282,3 +307,8 @@ Dony 结果卡片使用 24×24 线描图标（stroke 1.7、圆头线端、`curre
 本项目采用 **GNU General Public License v3.0**，完整文本见 [LICENSE](LICENSE)。
 
 > 分发前请将各源文件头部与分发说明中的版权归属替换为实际作者或组织名称。
+
+## 开发者
+
+- 软件开发者：**方块AAA**（bilibili UP：**方x盒**，GitHub：**FangkuaiAAA**），个人和 AI 完成。
+- 「照片编辑器」中的「照片重构」功能修改自 GitHub：**henjicc** 的 [Photo-Reframing](https://github.com/henjicc/Photo-Reframing) 项目（bilibili UP：**痕继痕迹**）。
