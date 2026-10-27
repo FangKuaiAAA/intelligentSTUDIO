@@ -45,6 +45,7 @@ try {
         --collect-all "pyaudio" `
         --collect-all "uiautomation" `
         --collect-all "comtypes" `
+        --collect-all "mss" `
         --hidden-import "win32com" `
         --hidden-import "win32com.client" `
         --hidden-import "win32com.propsys" `
