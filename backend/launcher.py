@@ -19,6 +19,23 @@ for _stream in (sys.stdout, sys.stderr):
     except Exception:
         pass
 
+# DPI 感知：不设置时，高缩放（125%/150%/200%）下 SetCursorPos 用的是「虚拟坐标」，
+# 而 mss 截图给的是「物理像素」——两者不一致，导致 gui_click / shot_click 点偏或点了没反应。
+# 必须在任何 user32 调用之前设置；Per-Monitor V2 失败时逐级回退。
+if sys.platform == "win32":
+    import ctypes
+
+    try:
+        ctypes.windll.user32.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4))  # PER_MONITOR_AWARE_V2
+    except Exception:
+        try:
+            ctypes.windll.shcore.SetProcessDpiAwareness(2)                       # PER_MONITOR_DPI_AWARE
+        except Exception:
+            try:
+                ctypes.windll.user32.SetProcessDPIAware()                        # SYSTEM_DPI_AWARE
+            except Exception:
+                pass
+
 # 顶层服务脚本（相对 backend 目录）
 SERVICES = {
     "main": "main.py",

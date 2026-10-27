@@ -5,13 +5,13 @@
 [Setup]
 AppId={{D79A0B5E-6E4A-4B8A-9F3D-1C2E3A4B5C6D}
 AppName=intelligentSTUDIO
-AppVersion=0.1.0
+AppVersion=0.1.1
 AppPublisher=intelligentSTUDIO
 DefaultDirName={autopf}\intelligentSTUDIO
 DefaultGroupName=intelligentSTUDIO
 DisableProgramGroupPage=yes
 OutputDir=..\release
-OutputBaseFilename=intelligentstudio-full-0.1.0
+OutputBaseFilename=intelligentstudio-full-0.1.1
 Compression=lzma2
 SolidCompression=no
 DiskSpanning=yes

@@ -8,7 +8,7 @@
 # 前置：Node.js、Python（或 .venv）、PyInstaller 已安装；首次打包按报错补 hiddenimports。
 
 param(
-    [string]$Version = "0.1.0"
+    [string]$Version = "0.1.1"
 )
 
 $ErrorActionPreference = "Stop"

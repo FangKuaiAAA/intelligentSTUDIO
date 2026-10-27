@@ -301,8 +301,8 @@ assets/           图标与媒体素材
 > **GitHub 上的源码不包含模型文件**（超出仓库体积限制），模型只在 **Release** 中提供。
 > Release 提供含模型的完整安装包（4 个分卷文件）。
 
-1. 从 **Release** 下载全部 4 个文件：`intelligentstudio-full-0.1.0.exe` 与 `-1/-2/-3.bin`。
-2. 把它们放在**同一目录**下，双击 `intelligentstudio-full-0.1.0.exe` 安装。
+1. 从 **Release** 下载全部 4 个文件：`intelligentstudio-full-0.1.1.exe` 与 `-1/-2/-3.bin`。
+2. 把它们放在**同一目录**下，双击 `intelligentstudio-full-0.1.1.exe` 安装。
 3. 安装完成后启动 `intelligentSTUDIO.exe`，首次启动会进入设置向导。
 4. 按向导填写模型配置并完成引导即可。
 

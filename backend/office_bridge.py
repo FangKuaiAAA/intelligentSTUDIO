@@ -205,7 +205,8 @@ CURATED_ELEMENT_IDS = (
 
 
 def _elements_manifest() -> List[Dict[str, str]]:
-    path = os.path.join(_repo_root(), "playground-app", "Assets", "Elements", "manifest.json")
+    # 打包态元素图在 resources/playground/Assets/Elements，源码态在 playground-app/Assets/Elements
+    path = os.path.join(_playground_dir(), "Assets", "Elements", "manifest.json")
     try:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
