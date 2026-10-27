@@ -136,6 +136,21 @@ def _repo_root() -> str:
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+def _resources_root() -> str:
+    """打包态：backend 源码在 _internal/backend，静态资源在上一级 resources/；
+    源码态：资源就在仓库根。"""
+    root = _repo_root()
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(root)
+    return root
+
+
+def _playground_dir() -> str:
+    """图乐园子应用目录：打包态 resources/playground，源码态 playground-app。"""
+    name = "playground" if getattr(sys, "frozen", False) else "playground-app"
+    return os.path.join(_resources_root(), name)
+
+
 def find_playground_exe() -> Optional[str]:
     """找图乐园可执行文件：环境变量优先，其次在 playground-app/bin 下按修改时间取最新。"""
     if _EXE_CACHE:
@@ -144,6 +159,13 @@ def find_playground_exe() -> Optional[str]:
     if explicit and os.path.exists(explicit):
         _EXE_CACHE.append(explicit)
         return explicit
+
+    if getattr(sys, "frozen", False):
+        direct = os.path.join(_playground_dir(), "ImagePlayground.exe")
+        if os.path.exists(direct):
+            _EXE_CACHE.append(direct)
+            return direct
+        return None
 
     root = os.path.join(_repo_root(), "playground-app", "bin")
     newest: Optional[str] = None
@@ -438,8 +460,11 @@ async def image_elements(request: Request):
 
 
 # ---- 静态资源：必须最后挂载，否则 "/" 会吞掉 /api/* ----
-STATIC_DIR = getattr(config, "OFFICE_STATIC_DIR", os.path.join(_repo_root(), "office", "dist"))
-ELEMENTS_DIR = os.path.join(_repo_root(), "playground-app", "Assets", "Elements")
+STATIC_DIR = (os.getenv("OFFICE_STATIC_DIR")
+              or getattr(config, "OFFICE_STATIC_DIR", "")
+              or os.path.join(_resources_root(), "office", "dist"))
+ELEMENTS_DIR = (os.getenv("PLAYGROUND_ELEMENTS_DIR")
+                or os.path.join(_playground_dir(), "Assets", "Elements"))
 
 if os.path.isdir(ELEMENTS_DIR):
     app.mount("/elements", StaticFiles(directory=ELEMENTS_DIR), name="elements")

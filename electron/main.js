@@ -28,6 +28,10 @@ function serviceEnv() {
     env.NOTIFY_MODEL_DIR = path.join(models, 'qwen2.5-0.5b-instruct-int4', 'cpu_and_mobile', 'cpu-int4-rtn-block-32')
     env.NOTIFY_CLASSIFIER_DIR = path.join(models, 'bge-small-zh-v1.5')
     env.APPX_CONFIG_FILE = path.join(process.env.APPDATA || process.env.USERPROFILE, 'IntelligentStudio', 'config.json')
+    // Office 桥与图乐园：静态资源在 resources/ 下（backend 在 resources/backend，靠相对路径推断不可靠）
+    env.OFFICE_STATIC_DIR = path.join(process.resourcesPath, 'office', 'dist')
+    env.PLAYGROUND_ELEMENTS_DIR = path.join(process.resourcesPath, 'playground', 'Assets', 'Elements')
+    env.PLAYGROUND_EXE = path.join(process.resourcesPath, 'playground', 'ImagePlayground.exe')
   }
   return env
 }

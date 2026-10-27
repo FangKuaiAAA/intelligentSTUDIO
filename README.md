@@ -36,6 +36,82 @@
 
 Dony 是 intelligentSTUDIO 的核心助手：`Alt+Space` 唤醒键入模式、`Alt+D` 唤醒语音模式（通知中心菜单）。
 
+### 两种执行模式
+
+两种模式**都是 ReAct**（边思考边行动）：每一步按「判断 → 行动 → 看结果 → 再决定下一步」推进，计划随实际情况修订。区别在于**可用工具、次数配额与预算**。
+
+| 模式 | 触发 | 策略 | 请求上限 |
+| --- | --- | --- | --- |
+| **快速模式** | 默认 | ReAct，优先直接型工具（Windows API / Shell / MCP），拿不到再退 UIA | **5 次**（`FAST_MAX_REQUESTS`），到达上限只允许 `show_card` 展示结果后收尾 |
+| **任务模式** | 判断需求复杂时调用 `enter_task_mode` | 同样 ReAct；`update_plan` 只作**初步步骤清单**，不要求一次想全，执行中可反复更新 | **40 次**安全上限（`TASK_MAX_REQUESTS`） |
+
+模式由首次模型请求判断；执行中发现步骤变多，可随时切换。
+
+### 模式对工具的限制
+
+**任务模式是快速模式的超集**：快速模式能用的工具，任务模式全部能用。任务模式另有两类增量能力：
+
+- **GUI 操作**：`gui_click`、`shot_click`、`gui_drag`、`shot_drag`、`gui_scroll`（屏幕 / 截图坐标点击、拖拽、滚动）
+- **任务规划**：`update_plan`（快速模式没有这个动作）
+
+工具按 `Tool.modes` 划分可用范围，当前模式下**看不到**不可用的工具：
+
+| 范围 | 工具 |
+| --- | --- |
+| **快速模式** | 除下表「仅任务模式」外的全部工具（系统 / 文件 / 网络 / `uia_click` / `uia_list_controls` / `screenshot_understand` / `edge_browser` 等） |
+| **任务模式** | 快速模式的全部工具 **+** `gui_click`、`shot_click`、`gui_drag`、`shot_drag`、`gui_scroll`、`update_plan` |
+| **仅快速模式** | `enter_task_mode`（它本身就是切模式的入口，进入任务模式后自然不再需要） |
+
+> **关于 plan**：任务模式**有** `update_plan`，但它是 ReAct 式的「初步步骤清单」——只写此刻能确定的步骤，执行中方向变化时再更新，不要求一次想全再照做。快速模式**没有** `update_plan`（单步需求不需要规划）。
+
+快速模式另有硬性次数限制，超出会直接报错并要求切换任务模式：
+
+| 限制 | 值 | 超限行为 |
+| --- | --- | --- |
+| 截屏理解 | 每条消息 **1 次**（`FAST_MAX_SCREENSHOT`） | 报错「快速模式每条消息最多截屏 1 次，需要多次理解请 enter_task_mode」 |
+| UIA 控件操作 | 每条消息 **2 次**（`FAST_MAX_UIA`） | 报错「快速模式最多进行 2 次控件操作，请改用直接型工具或 enter_task_mode」 |
+| 模型请求 | **5 次**（`FAST_MAX_REQUESTS`） | 强制收尾，只保留 `show_card` |
+
+因此**按坐标 / 截图点击、拖拽、滚动只能在任务模式执行**；快速模式下若需求涉及点击，模型会被要求先调用 `enter_task_mode`。
+
+### 工具能力（Function Calling）
+
+**系统级直操（优先，最快）**
+
+| 类别 | 工具 |
+| --- | --- |
+| 系统状态 | `get_system_status`（CPU / 内存 / 硬盘 / 显卡） |
+| 无线与开关 | `set_radio`（蓝牙 / WiFi / 热点）、`set_system_toggle` |
+| 音量 / 亮度 / 电源 | `set_volume`、`set_brightness`、`set_power_mode` |
+| 应用 | `list_apps`、`open_app`、`close_app` |
+| 文件 | `list_directory`、`read_file`、`write_file`、`delete_files`（需确认）、`search_files` |
+| 窗口 / 剪贴板 | `manage_window`、`clipboard` |
+| 计划任务 / 启动项 | `create_scheduled_task`、`delete_scheduled_task`、`manage_startup` |
+| 闹钟 / 计时器 | `set_alarm`、`set_timer` |
+| 设备 | `eject_device` |
+| Shell / 键盘 | `run_shell`、`press_keys`、`type_text` |
+| 网络 | `web_search`、`web_fetch`、`open_website` |
+| 浏览器 | `edge_browser`（标签页 / 收藏夹整理） |
+
+**界面感知与操作**
+
+| 能力 | 工具 |
+| --- | --- |
+| 读取控件 | `uia_list_controls`（Windows UIA） |
+| 点击控件 | `uia_click` |
+| 截屏理解 | `screenshot_understand`（截图直接作为图片交给主模型） |
+| 按图点击 / 拖拽 | `shot_click`、`shot_drag`（坐标按截图缩放自动换算） |
+| 屏幕坐标点击 / 拖拽 / 滚动 | `gui_click`、`gui_drag`、`gui_scroll` |
+
+> 点击类与多次截屏**仅任务模式**可用；快速模式提到"点击"会自动提示切换。
+
+**扩展能力**
+
+- **MCP**：调用用户配置的 MCP 服务器（设置 → MCP）
+- **Skill**：`load_skill` 加载技能包（设置 → 技能）
+- **记忆**：`remember` / `forget` 长期记忆
+- **卡片**：`show_card` 展示结果卡片（见下）
+
 ### 卡片系统
 
 Dony 的每次操作结果以**卡片**呈现——**每张卡片就是被操作的项目本身**：一个文件、一个开关、一台设备、一条天气资讯。用户看到的不是"操作日志"，而是对象本身。
@@ -61,6 +137,37 @@ Dony 的每次操作结果以**卡片**呈现——**每张卡片就是被操作
    - 计时器 / 闹钟：副标题实时走秒
 6. **图标规范**：24×24 画布、stroke 1.7、圆头线端、`currentColor`，几何按 SF Symbols 骨架重画，保证同一排视觉重量一致。
 
+## 通知智能与智能勿扰
+
+通知智能由本地小模型驱动，**不使用关键词或规则**，全部离线运行。
+
+### 组成
+
+| 组件 | 模型 / 机制 | 说明 |
+| --- | --- | --- |
+| 重要性判定 | **bge-small-zh-v1.5**（INT8 ONNX，约 24 MB） | 句向量 + 最近示例 kNN，单条 5–8 ms，不依赖 torch |
+| 摘要生成 | **Qwen2.5-0.5B-Instruct**（INT4 ONNX） | 合并为 ≤30 字中文摘要，支持增量重写 |
+| 专注模式检测 | WNF / FocusSessionManager / SHQueryUserNotificationState | 只读系统状态，三级兜底 |
+| 通知监听 | `winsdk` UserNotificationListener | 读取 Windows 通知中心 |
+
+类别向量由 `scripts/build_notification_classifier.py` 从示例集离线计算，写入
+`models/bge-small-zh-v1.5/classifier.json`；运行时不做关键词匹配。
+
+### 摘要逻辑
+
+1. 同一应用（AUMID）的通知归为一组
+2. 滑动窗口 + 5 秒去重
+3. 达到阈值（默认 3 条）→ 防抖等待 → Qwen 生成一句摘要
+4. 新通知到达时，在旧摘要基础上**增量重写**
+5. 通过 Toast 弹出「应用 · 通知摘要」
+
+### 智能勿扰逻辑
+
+1. 轮询系统专注模式（勿扰开关 / 专注会话 / 安静时间）
+2. 专注激活时，只有 `classifier` 判定为**重要**的通知才弹窗 + 提示音
+3. 非重要通知静默进入摘要队列
+4. 专注关闭后恢复常态
+
 ## 照片编辑器
 
 照片编辑器是独立的 WinUI3 应用（`photo-app`），提供四项核心能力：
@@ -85,6 +192,15 @@ Dony 的每次操作结果以**卡片**呈现——**每张卡片就是被操作
 1. 单图重建为高斯点云
 2. 用户选择新的观察视角
 3. 生成式模型补齐视角变换后的空缺区域，重新完成照片构图
+
+## 运行说明
+
+> **主进程是核心**：Dony、视觉智能、书写辅助、通知智能、照片编辑器推理服务（8772）等，都依赖主进程
+> `intelligentSTUDIO.exe` 拉起本地服务。**如果主进程被结束，这些独立软件的部分功能会异常**
+> （例如照片编辑器提示服务不可用、Office 插件连不上 8771）。
+>
+> **启动「STUDIO 设置」会自动重启主进程**（设置页检测 8767 端口，未运行则静默拉起）；
+> 也可以在「STUDIO 设置 → 通用 → 主进程」手动启动 / 重启。
 
 ## 界面预览
 

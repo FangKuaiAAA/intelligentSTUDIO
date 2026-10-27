@@ -9,6 +9,16 @@ from __future__ import annotations
 import os
 import sys
 
+# Windows 中文系统的控制台/管道默认编码是 GBK；日志里的 ⚠（\u26a0）、→ 等符号会抛
+# UnicodeEncodeError: 'gbk' codec can't encode character ... ，
+# 直接把服务启动（如 office_bridge 的「⚠ 未找到证书」）或工具执行打断。
+# 入口处强制把标准输出/错误切成 UTF-8，并用 errors=replace 兜底，绝不再因日志字符崩。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 # 顶层服务脚本（相对 backend 目录）
 SERVICES = {
     "main": "main.py",
