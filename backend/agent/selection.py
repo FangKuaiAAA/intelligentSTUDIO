@@ -21,6 +21,7 @@
 立刻查会读到上一次的选区。
 """
 import asyncio
+import os
 import threading
 import time
 from typing import Any, Dict, List, Optional, Tuple
@@ -106,6 +107,24 @@ def _on_primary_screen(rects: List[List[int]]) -> bool:
     left, top, right, bottom = _union(rects)
     cx, cy = (left + right) // 2, (top + bottom) // 2
     return 0 <= cx < w and 0 <= cy < h
+
+
+def _log_event(diag: str) -> None:
+    """把「按取消处理」的现场落盘（%LOCALAPPDATA%\\intelligentSTUDIO\\logs\\writing.log）。
+
+    打包版没有控制台，后端的 stdout 会被 Electron 吞掉 —— 出问题时既看不到
+    _LAST_DIAG，也无法区分「用户真的取消」和「我们自己的判定失误」。这条落盘
+    是事后定位的唯一依据，代价只是每次取消追加一行。
+    """
+    try:
+        base = os.path.join(
+            os.environ.get("LOCALAPPDATA") or os.path.expanduser("~"),
+            "intelligentSTUDIO", "logs")
+        os.makedirs(base, exist_ok=True)
+        with open(os.path.join(base, "writing.log"), "a", encoding="utf-8") as f:
+            f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')}  取消  {diag}\n")
+    except Exception:
+        pass
 
 
 def _native_hwnd(control) -> int:
@@ -367,6 +386,15 @@ class SelectionWatcher:
         self._ui_active = False
         # 界面各块的屏幕矩形（见 set_ui_active / _in_ui）
         self._ui_rects: List[Dict[str, Any]] = []
+        # 上一次广播出去的选区矩形（[l,t,r,b]，屏幕物理像素）。仅留作诊断/日志用途，
+        # **不参与**"这次抬键该不该查询"的判定 —— 那条只认我们自己的界面矩形，
+        # 否则用户"在选区旁边点一下取消"会被误当成点界面、界面就收不掉了。
+        self._last_rects: List[List[int]] = []
+        # 本次左键按下的位置：抬起时用位移区分"一下点击"与"重新划选"（见 _poll_loop）
+        self._down_pos: Optional[Tuple[int, int]] = None
+        # 界面出现的时刻：刚出现的一小段时间里，前端可能还没把界面矩形报上来（IPC 往返 +
+        # 首帧渲染），此时点标签会被 _in_ui 误判成"不在界面"。见 _poll_loop 的宽限。
+        self._ui_shown_at = 0.0
 
     # ---------- 用户操作期间的停查 ----------
     def suspend(self, seconds: float = 5.0) -> None:
@@ -448,7 +476,10 @@ class SelectionWatcher:
         （日志里连点十几次，渲染层一次 mousedown 都没有）。这条链路绕开 Chromium 的
         输入分发：后端直接看物理按键与指针位置，把点发给前端，由前端自己做命中派发。
         """
+        was = self._ui_active
         self._ui_active = bool(active)
+        if self._ui_active and not was:
+            self._ui_shown_at = time.monotonic()
         # 界面各块的屏幕矩形（标签/菜单/横框）。窗口始终点击穿透，所以点我们界面时
         # 那一下**同时**会落到下面的编辑器里；用这份矩形就能认出"这次抬起是打在我们
         # 自己界面上的"，从而跳过重读选区（不跳过就会被读空、会话当场结束）。
@@ -562,6 +593,10 @@ class SelectionWatcher:
                 pressed = bool(win32api.GetKeyState(_VK_LBUTTON) & 0x8000)
                 if pressed and not pressed_before:
                     pressed_before = True
+                    try:
+                        self._down_pos = win32api.GetCursorPos()
+                    except Exception:
+                        self._down_pos = None
                     # 按下就派发（不像"单击"那样等抬起）：界面按钮的反应必须是按下的那一刻。
                     # 是否落在可点元素上由前端判定（它手上才有 DOM 布局）。
                     if self._ui_active:
@@ -587,10 +622,32 @@ class SelectionWatcher:
                                            "x": int(pos[0]), "y": int(pos[1])})
                         except Exception:
                             pass
+                    # 本次按下→抬起的位移：划选必然有位移，点标签/菜单/按钮几乎不动。
+                    moved = 1 << 30
+                    if self._down_pos is not None:
+                        moved = abs(pos[0] - self._down_pos[0]) + abs(pos[1] - self._down_pos[1])
+                    self._down_pos = None
+                    is_click = moved <= 8
+
                     # 落在我们自己界面上（标签/菜单/横框）→ 这不算"用户重新划选"。
                     # 窗口始终点击穿透时，点界面的那一下**同时**落到了下面的编辑器里
                     # （光标被挪走、UIA 会读出空选区），照常查询就会把当前会话读没。
-                    if not self._in_ui(pos) and not self._is_own_window(pos):
+                    #
+                    # 只有「点在我们自己的界面上」才跳过查询；其余位置（编辑器别处、
+                    # 桌面…）必须照常查询 —— 用户正是靠"在旁边点一下"来取消书写辅助，
+                    # 一旦在这里吞掉，就会变成"取消不掉、界面永远赖着"。
+                    #
+                    # 唯一的宽限是界面刚出现的前 350ms：那一刻前端还没把界面矩形报上来
+                    # （IPC 往返 + 首帧渲染），点标签会被 _in_ui 误判成"不在界面"，
+                    # 于是白白查一次、读到被点空的选区，界面自己收掉。
+                    # 越过这个窗口后一律以 _ui_rects 为准，不再放过任何点击。
+                    fresh = self._ui_active and (
+                        time.monotonic() - self._ui_shown_at < 0.35)
+                    if fresh and is_click:
+                        skip = True
+                    else:
+                        skip = self._in_ui(pos) or self._is_own_window(pos)
+                    if not skip:
                         self._gesture += 1
                         self._wake_gesture = self._gesture
                         self._wake.set()
@@ -726,6 +783,7 @@ class SelectionWatcher:
         # 把当时的现场一并打出来：分不清"用户取消"和"我们自己的原因"时，
         # 这一行是唯一的判据（用户报的"点一下界面就没了"就是靠它定位的）。
         print(f"[writing] 选区读取失败，按取消处理｜{_LAST_DIAG}", flush=True)
+        _log_event(_LAST_DIAG)
         if manual:
             # 双击 Ctrl 时没有选中文字：什么都不显示
             print("[writing] 双击 Ctrl 未读到选区 → 不显示界面", flush=True)
@@ -746,6 +804,11 @@ class SelectionWatcher:
         if info is None and not self._had_selection:
             return
         self._had_selection = info is not None
+        # 记住这一次的选区矩形（诊断用，不参与抬键判定）
+        try:
+            self._last_rects = [list(r) for r in (info.get("rects") or [])] if info else []
+        except Exception:
+            self._last_rects = []
         self._seq += 1
         payload: Dict[str, Any] = {
             "type": "writing-selection", "seq": self._seq, "gesture": self._wake_gesture,

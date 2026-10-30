@@ -136,6 +136,12 @@ const VISUAL_ICON = path.join(ICON_DIR, '视觉智能.ico')
 // 任务栏图标分组/命名的身份：不设的话 Windows 会把它当成一个匿名的 Electron 应用
 try { app.setAppUserModelId('com.dony.intelligentstudio') } catch (e) { /* 忽略 */ }
 
+// 开发态使用独立的 userData：否则 `npm run electron:dev` 与已安装版本共用同一份
+// 单实例锁，dev 一启动就被打包版挡掉（日志里只有一句「已有实例在运行，本次启动直接退出」）。
+if (!app.isPackaged) {
+  try { app.setPath('userData', path.join(app.getPath('userData'), 'dev')) } catch (e) { /* 忽略 */ }
+}
+
 // 首次启动向导：读 .appx_config.json 的 ONBOARDING_COMPLETED，未完成则拉起 onboarding
 const CONFIG_FILE = app.isPackaged
   ? path.join(process.env.APPDATA || process.env.USERPROFILE, 'IntelligentStudio', 'config.json')
@@ -151,29 +157,60 @@ function isOnboardingCompleted() {
   }
 }
 
+/** 拉起首次启动向导，返回子进程（拿不到就返回 null）。
+ *  返回值有用途：向导是个独立 exe，主进程只能靠"它退出了没有"来判断用户是不是
+ *  把引导关掉了（见 waitForOnboarding）。 */
 function launchOnboarding() {
   try {
     if (app.isPackaged) {
       const exe = path.join(process.resourcesPath, 'onboarding', 'Onboarding.exe')
-      if (fs.existsSync(exe)) { spawn(exe, [], { detached: true, stdio: 'ignore' }).unref(); return }
+      if (fs.existsSync(exe)) {
+        const child = spawn(exe, [], { detached: true, stdio: 'ignore' })
+        child.unref()
+        return child
+      }
     } else {
       const bat = path.join(__dirname, '..', 'run-onboarding.bat')
-      if (fs.existsSync(bat)) { spawn('cmd', ['/c', 'start', '""', bat], { detached: true, stdio: 'ignore' }).unref(); return }
+      if (fs.existsSync(bat)) {
+        const child = spawn('cmd', ['/c', 'start', '""', bat], { detached: true, stdio: 'ignore' })
+        child.unref()
+        return child
+      }
     }
   } catch { /* 拉起失败不阻断主程序 */ }
+  return null
 }
 
 // 首次启动时等待用户走完 onboarding（onboarding 完成后写 ONBOARDING_COMPLETED）。
 // 未完成前不初始化主界面，避免「Dony 打字界面」盖住设置向导。
 function waitForOnboarding() {
   if (isOnboardingCompleted()) return Promise.resolve()
-  launchOnboarding()
   return new Promise(resolve => {
-    const poll = setInterval(() => {
-      if (isOnboardingCompleted()) { clearInterval(poll); resolve() }
-    }, 2000)
-    // 兜底：10 分钟内未完成也放行，避免配置异常导致主界面永远不出现
-    setTimeout(() => { clearInterval(poll); resolve() }, 10 * 60 * 1000)
+    let settled = false
+    let poll = null
+    const finish = (why) => {
+      if (settled) return
+      settled = true
+      if (poll) clearInterval(poll)
+      if (why) console.log(`[onboarding] ${why} → 继续启动主界面`)
+      resolve()
+    }
+
+    poll = setInterval(() => { if (isOnboardingCompleted()) finish() }, 2000)
+
+    const child = launchOnboarding()
+    // ⚠ 必须有这一条：用户把向导关掉（没走完）时配置永远不会写，原来的实现会在这里
+    //   死等 10 分钟 —— 期间没有托盘、没有后端、快捷键也没注册，而单实例锁已经被
+    //   占住了，再双击 exe 只会「静默退出」，表现就是「双击打不开、毫无反应」。
+    //   向导进程退出后再宽限 1.5 秒（配置可能刚落盘），仍未完成就放行主程序。
+    if (child && typeof child.on === 'function') {
+      child.on('exit', () => {
+        setTimeout(() => { if (!isOnboardingCompleted()) finish('向导已关闭但引导未完成') }, 1500)
+      })
+      child.on('error', () => finish('向导启动失败'))
+    }
+    // 最终兜底：10 分钟
+    setTimeout(() => finish('等待引导超时'), 10 * 60 * 1000)
   })
 }
 
@@ -1984,9 +2021,23 @@ if (!hasSingleInstanceLock) {
   app.on('second-instance', () => {
     console.log('[single-instance] 检测到第二次启动 → 唤醒已有实例')
     try {
-      if (!overlayWindow || overlayWindow.isDestroyed()) return
-      restoreOverlayTop(); overlayWindow.show(); setOverlayTakeMouse(true); overlayWindow.focus()
-      if (!isAwake) wakeOverlay()
+      if (overlayWindow && !overlayWindow.isDestroyed()) {
+        restoreOverlayTop(); overlayWindow.show(); setOverlayTakeMouse(true); overlayWindow.focus()
+        if (!isAwake) wakeOverlay()
+        return
+      }
+      // 还处在首次引导阶段（overlayWindow 尚未创建）：这时必须有**可见反馈**，
+      // 否则第二次双击看起来完全没反应（用户实测的「双击打不开」就是这一步）。
+      // 向导是本进程 spawn 出去的独立 exe，先把已存在的窗口带到前台；
+      // 没有窗口（用户已经把它关掉）就重新拉起一份。
+      const wins = BrowserWindow.getAllWindows().filter((w) => !w.isDestroyed())
+      if (wins.length) {
+        const w = wins[0]
+        if (w.isMinimized()) w.restore()
+        w.show(); w.focus()
+        return
+      }
+      if (!isOnboardingCompleted()) launchOnboarding()
     } catch (err) { /* 忽略 */ }
   })
 }

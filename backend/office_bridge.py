@@ -137,11 +137,23 @@ def _repo_root() -> str:
 
 
 def _resources_root() -> str:
-    """打包态：backend 源码在 _internal/backend，静态资源在上一级 resources/；
-    源码态：资源就在仓库根。"""
+    """静态资源根目录。
+
+    安装态布局：<安装目录>/resources/backend/_internal/backend/office_bridge.py
+      _repo_root()      = <安装目录>/resources/backend/_internal
+      dirname 一次      = <安装目录>/resources/backend      ← 不是 resources！
+      dirname 两次      = <安装目录>/resources              ← 这个才是资源根
+    开发态布局：backend-dist/_internal/backend/office_bridge.py
+      _repo_root()      = backend-dist/_internal
+      dirname 一次      = backend-dist                       ← 这里就是仓库根
+    因此按「父目录是否叫 backend」判断是否还要再上一层。
+    """
     root = _repo_root()
     if getattr(sys, "frozen", False):
-        return os.path.dirname(root)
+        parent = os.path.dirname(root)
+        if os.path.basename(parent).lower() == "backend":
+            return os.path.dirname(parent)
+        return parent
     return root
 
 
@@ -205,8 +217,9 @@ CURATED_ELEMENT_IDS = (
 
 
 def _elements_manifest() -> List[Dict[str, str]]:
-    # 打包态元素图在 resources/playground/Assets/Elements，源码态在 playground-app/Assets/Elements
-    path = os.path.join(_playground_dir(), "Assets", "Elements", "manifest.json")
+    # 直接用与静态挂载同一份 ELEMENTS_DIR（它已支持 PLAYGROUND_ELEMENTS_DIR 环境变量），
+    # 保证「清单里列出的文件」与「/elements 能访问到的文件」是同一目录。
+    path = os.path.join(ELEMENTS_DIR, "manifest.json")
     try:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)

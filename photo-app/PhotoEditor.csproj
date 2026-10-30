@@ -19,6 +19,9 @@
     <!-- 像素缓冲通过 COM 接口直接读写，需要 unsafe -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>PhotoEditor</AssemblyName>
+    <Company>方块AAA</Company>
+    <Product>intelligentSTUDIO</Product>
+    <Copyright>Copyright © 2026 方块AAA</Copyright>
     <ApplicationIcon>..\assets\icons\照片智能编辑器.ico</ApplicationIcon>
   </PropertyGroup>
 

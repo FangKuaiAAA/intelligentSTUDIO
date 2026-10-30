@@ -2,6 +2,7 @@
   "name": "intelligentstudio",
   "productName": "intelligentSTUDIO",
   "version": "0.1.1",
+  "author": "方块AAA",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
@@ -36,6 +37,7 @@
   },
   "build": {
     "appId": "com.dony.intelligentstudio",
+    "copyright": "Copyright © 2026 方块AAA",
     "win": {
       "icon": "assets/icons/intelligentSTUDIO-installer.ico",
       "executableName": "intelligentSTUDIO"

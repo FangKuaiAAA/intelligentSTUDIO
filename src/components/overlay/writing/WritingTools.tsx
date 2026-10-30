@@ -375,8 +375,12 @@ export function WritingTools({
           + ` 相=${phaseRef.current} 活动=${activeRef.current}`,
         )
         if (!m.text) {
-          // 横框已经立起来（working / result）时，空选区广播**不许收界面**：
-          // 需求是"横框只能由保留/复原退出"，在别处点一下不该让它消失。
+          // 界面已经进入「可操作」阶段时，空选区广播**不许收界面**：
+          //   · menu    —— 修改面板已弹出。此时焦点已转到面板，目标程序那边必然读到
+          //                "选区消失"，这是必然现象、不是用户想关面板；
+          //                以前只保护了 working/result，于是面板弹出后约半秒就自己关掉
+          //                （用户实测「修改面板和横框约 2 秒后自己退出」）。
+          //   · working / result —— 横框只能由保留/复原退出，在别处点一下不该让它消失。
           if (phaseRef.current === 'working' || phaseRef.current === 'result') return
           // 选区"消失"**不能立刻信**：它有两种来源 ——
           //   ① 用户真的点了别处（该收起界面）

@@ -1,6 +1,10 @@
 $env:ELECTRON_MIRROR = "https://npmmirror.com/mirrors/electron/"
 $env:ELECTRON_BUILDER_BINARIES_MIRROR = "https://npmmirror.com/mirrors/electron-builder-binaries/"
 Set-Location D:\OpenCode\APPXInteligent
+
+Get-Process -Name 'intelligentSTUDIO','intelligentstudio-backend','DonySettings','Onboarding','Dony','ImagePlayground','PhotoEditor' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Start-Sleep 2
+
 foreach ($d in @("dist\win-unpacked", "release\win-unpacked")) {
     if (Test-Path $d) { cmd /c "rmdir /s /q `"$d`"" }
 }

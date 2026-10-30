@@ -118,8 +118,9 @@ def _uia_list(window_title: str) -> List[str]:
 
 
 @tool("uia_click", "点击界面控件",
-      "通过 Windows UIA 直接点击指定窗口中的按钮/菜单/选项卡等控件（不是模拟鼠标，稳定快速）。"
-      "window_title 窗口标题关键词；control_name 控件上显示的文字；找不到时先用 uia_list_controls 查看实际控件名。",
+      "通过 Windows UIA **直接激活**控件（InvokePattern：不移动鼠标、不需要坐标，最快最稳）。"
+      "**要点界面时优先用它**。window_title 窗口标题关键词；control_name 控件上显示的文字；"
+      "不确定控件名就先 uia_list_controls 看清单；确认该窗口没有控件树时才退到坐标点击。",
       {"window_title": {"type": "string", "description": "窗口标题关键词", "required": True},
        "control_name": {"type": "string", "description": "控件名称/文字", "required": True},
        "control_type": {"type": "string", "description": "控件类型，默认 Button（如 MenuItem/TabItem/CheckBox/ListItem）"},
@@ -288,7 +289,18 @@ _SELF_PROCS = _self_process_names()
 # 被当成"外部程序"：点一下标签就被算作一次划过选（后端白白重读一次选区、日志里
 # "收到选区"刷屏），"焦点在我们自己身上"这类判断也全部失灵。
 # 这个应用本体就是 Electron，直接补进去，不依赖启动方式。
-_SELF_PROCS |= {"electron.exe", "appxinteligent.exe"}
+#
+# ⚠⚠ 打包版必须补上主程序自己的 exe 名：productName / executableName 是
+#   intelligentSTUDIO.exe，而开发态的进程名是 electron.exe。
+#   少这一条时的表现（用户实测、且只在安装版出现）：
+#     · 覆盖层窗口被当成「外部程序」→ GetFocusedControl 落在我们的网页上（无 TextPattern）
+#     · → 判定为「选区被取消」→ 广播空选区 → 书写辅助界面一唤醒就自己收掉
+#   带 studio / inteligent 的几种历史拼写都列上，宁多勿漏。
+_SELF_PROCS |= {
+    "electron.exe",          # 开发态：Electron 主进程
+    "appxinteligent.exe",    # 历史可执行名
+    "intelligentstudio.exe", # 打包态：productName / executableName（大小写比较前已 lower）
+}
 
 
 def _is_self_process(hwnd: int) -> bool:
@@ -454,6 +466,43 @@ async def screenshot_understand(args: Dict[str, Any], ctx) -> ToolResult:
 
 
 # ---------- GUI 坐标点击（任务模式专用） ----------
+def _send_mouse_input(flags: int, data: int = 0) -> int:
+    """发一条鼠标 INPUT，返回真正入队的条数（0 = 被系统拦截）。
+
+    ⚠ 不用 win32api.mouse_event：它是旧 API，对**管理员权限窗口**、部分自绘界面/
+    游戏会被静默忽略 —— 用户实测正是「指针移过去了，但点不下、工具却报成功」。
+    SendInput 是官方推荐路径，且返回值能告诉我们有没有被 UIPI 拦下。
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    class MOUSEINPUT(ctypes.Structure):
+        _fields_ = [
+            ("dx", wintypes.LONG),
+            ("dy", wintypes.LONG),
+            ("mouseData", wintypes.DWORD),
+            ("dwFlags", wintypes.DWORD),
+            ("time", wintypes.DWORD),
+            ("dwExtraInfo", ctypes.POINTER(ctypes.c_ulong)),
+        ]
+
+    class _INPUTUNION(ctypes.Union):
+        _fields_ = [("mi", MOUSEINPUT)]
+
+    class INPUT(ctypes.Structure):
+        _fields_ = [("type", wintypes.DWORD), ("union", _INPUTUNION)]
+
+    inp = INPUT()
+    inp.type = 0  # INPUT_MOUSE
+    inp.union.mi.dx = 0
+    inp.union.mi.dy = 0
+    inp.union.mi.mouseData = data
+    inp.union.mi.dwFlags = flags
+    inp.union.mi.time = 0
+    inp.union.mi.dwExtraInfo = None
+    return int(ctypes.windll.user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT)))
+
+
 def _gui_click(x: int, y: int, button: str, double: bool) -> None:
     """win32api 直接移动+点击（比 pyautogui 快：pyautogui 每次动作有 0.1s 固有 PAUSE）。
 
@@ -496,9 +545,13 @@ def _gui_click(x: int, y: int, button: str, double: bool) -> None:
     else:
         down, up = win32con.MOUSEEVENTF_LEFTDOWN, win32con.MOUSEEVENTF_LEFTUP
     for i in range(2 if double else 1):
-        win32api.mouse_event(down, 0, 0, 0, 0)
+        if _send_mouse_input(down) == 0:
+            raise RuntimeError(
+                "点击事件被系统拦截（目标窗口权限可能高于本程序）——"
+                "请以管理员身份运行 intelligentSTUDIO，或改用 uia_click。")
         _time.sleep(0.06)        # 按下→抬起之间必须有间隔，否则会被整帧丢掉
-        win32api.mouse_event(up, 0, 0, 0, 0)
+        if _send_mouse_input(up) == 0:
+            raise RuntimeError("鼠标抬起事件被系统拦截，已中止本次点击。")
         if double and i == 0:
             _time.sleep(0.07)    # 双击间隔
     _time.sleep(0.05)
@@ -513,17 +566,34 @@ def _gui_click(x: int, y: int, button: str, double: bool) -> None:
 def _looks_like_shot_coords(x: int, y: int) -> bool:
     """判断 (x,y) 是不是「截图上的像素」被误当成屏幕坐标。
 
-    特征：落在最近那张截图的画幅内，却不在它覆盖的屏幕区域里。
-    这种情况直接拒点——之前只是提醒后照点，结果点到了列表里的另一首歌。
+    三层判据（越靠前越确定）：
+      1. 落在图幅内、却不在截图覆盖的屏幕区域里 → 图坐标（窗口截图）；
+      2. 落在图幅内、**也**在屏幕区域里（两者重叠区）：
+         · 有缩放 → 图坐标（缩放后的图幅必然小于屏幕区域）；
+         · 无缩放但截图带偏移（region 左上不是 0,0）→ **同样判为图坐标**。
+           这是之前的缺口：窗口截图 scale=1 时重叠区约占图幅 40%，
+           模型把图坐标传给 gui_click 会被放行，点击整体偏移 (region.left, region.top)
+           —— 用户实测「lx-music 每次点击都偏移，其他窗口正常」就是这条。
+      3. 落在图幅外 → 一定是屏幕坐标，放行。
+
+    ⚠ 代价：窗口带偏移时，落在图幅内的**屏幕坐标**也会被拒。这类坐标主要来自
+    uia_list_controls 的 @(x,y)，而现行规则是「能用 uia_click 直接激活就别用坐标」，
+    所以误伤面很小；被拒时提示里会同时给出「用 shot_click」和「移开窗口再点」两条路。
     """
     m = _SHOT_META
     if not m or "region" not in m or "image" not in m:
         return False
     x0, y0, x1, y1 = m["region"]
-    if x0 <= x <= x1 and y0 <= y <= y1:
-        return False                      # 本来就在截图范围内 → 当屏幕坐标用
     iw, ih = m["image"]
-    return 0 <= x < iw and 0 <= y < ih     # 落在这张图的画幅里 → 几乎肯定是图上像素
+    scale = float(m.get("scale") or 1.0)
+
+    if not (0 <= x < iw and 0 <= y < ih):
+        return False                        # 图幅之外 → 不可能是图坐标
+    if not (x0 <= x <= x1 and y0 <= y <= y1):
+        return True                         # 图幅内、却不在截图覆盖的屏幕区域
+    if scale > 1.0:
+        return True                         # 缩放过 → 重叠区必然是图坐标
+    return x0 != 0 or y0 != 0               # 无缩放但有偏移 → 同样高度可疑
 
 
 def _occluder(x: int, y: int) -> str:
@@ -570,19 +640,29 @@ def _stale_note() -> str:
             "尤其是滚动过的窗口，请重新截图再量坐标。")
 
 
-def _click_note(x: int, y: int) -> str:
-    """点击后附一句坐标来源提醒：最常见的“大范围偏移”就是把窗口内坐标当成了屏幕坐标。"""
+def _click_note(x: int, y: int) -> Tuple[bool, str]:
+    """点击后的附加说明，**同时**给出这次点击该不该算失败。返回 (ok, note)。
+
+    ⚠ 以前调用方写的是 `ok = not note`：只要 note 非空就判成失败。而坐标落在
+    截图范围内时 note 是 `_stale_note()`（"截图之后界面被操作过"的提醒），
+    于是**第一次点击之后，后面每一次点击都返回 ok=False**。模型据此认为没点中，
+    反复点同一处（用户实测：「模型反复点同一处，但对话里也不说点击失败」）。
+    点击其实已经执行了，stale 只是提醒，不能否决成败。
+
+    只有「坐标根本不在最近一次截图范围内」才真的可疑 —— 那种情况才判失败，
+    并提示改用 shot_click / 重新截图。
+    """
     m = _SHOT_META
     if not m or "region" not in m:
-        return ""
+        return True, ""
     x0, y0, x1, y1 = m["region"]
     if x0 <= x <= x1 and y0 <= y <= y1:
-        return _stale_note()
+        return True, _stale_note()
     where = f"窗口「{m['window']}」" if m.get("window") else "整屏"
-    return (f" ⚠ 这个坐标不在最近一次截图（{where}，屏幕区域 "
-            f"({x0},{y0})-({x1},{y1})）的范围内。"
-            f"如果你量的是**图上像素**，请改用 shot_click（它会自动换算）；"
-            f"不要把窗口内坐标直接当成屏幕坐标传给 gui_click。")
+    return False, (f" ⚠ 这个坐标不在最近一次截图（{where}，屏幕区域 "
+                   f"({x0},{y0})-({x1},{y1})）的范围内。"
+                   f"如果你量的是**图上像素**，请改用 shot_click（它会自动换算）；"
+                   f"不要把窗口内坐标直接当成屏幕坐标传给 gui_click。")
 
 
 @tool("gui_click", "光标点击",
@@ -601,10 +681,22 @@ async def gui_click(args: Dict[str, Any], ctx) -> ToolResult:
     double = bool(args.get("double"))
     if _looks_like_shot_coords(x, y):
         m = _SHOT_META
+        scale = float(m.get("scale") or 1.0)
+        rx0, ry0, rx1, ry1 = m["region"]
+        iw, ih = m["image"]
+        sx, sy = int(round(rx0 + x * scale)), int(round(ry0 + y * scale))
+        if scale > 1.0:
+            why = (f"最近那张截图是 {scale} 倍缩小后的图（图幅 {iw}×{ih}），"
+                   f"({x},{y}) 落在图幅内")
+        else:
+            why = (f"({x},{y}) 落在最近那张截图的图幅内（{iw}×{ih}，1:1），"
+                   f"而这张截图是窗口「{m.get('window') or '整屏'}」、"
+                   f"屏幕区域 ({rx0},{ry0})-({rx1},{ry1})")
         return ToolResult(
-            f"没有点击：({x},{y}) 落在最近那张截图的画幅内，却不在它覆盖的屏幕区域 "
-            f"({m['region'][0]},{m['region'][1]})-({m['region'][2]},{m['region'][3]}) 里，"
-            f"看起来是**图上的像素**。改用 shot_click 传同一个坐标即可（它会自动换算成屏幕坐标）。",
+            f"没有点击：{why}，看起来是**图上的像素**。\n"
+            f"· 若这就是你在图上量的位置 → 用 shot_click(x={x}, y={y})，会点到屏幕 ({sx},{sy})；\n"
+            f"· 若要的就是屏幕坐标 ({x},{y}) → 先把该窗口移开，"
+            f"或改用 uia_click 直接激活控件（不需要坐标）。",
             ok=False)
     blocked = _occluder(x, y)
     if blocked:
@@ -616,10 +708,10 @@ async def gui_click(args: Dict[str, Any], ctx) -> ToolResult:
         await asyncio.to_thread(_gui_click, x, y, button, double)
     except Exception as e:
         return ToolResult(f"点击失败：{e}", ok=False)
-    note = _click_note(x, y)
-    # 坐标落在最近一次截图范围外 → 多半点错了地方：标记为失败，让模型重新核对
+    ok, note = _click_note(x, y)
+    # ok 只取决于「坐标是否落在截图范围内」：成功后已执行，stale 提醒不否决成败
     return ToolResult(f"已在坐标 ({x},{y}) {'双击' if double else '点击'}（{button}）。{note}",
-                      ok=not note)
+                      ok=ok)
 
 
 @tool("shot_click", "按图点击",
@@ -650,9 +742,9 @@ async def shot_click(args: Dict[str, Any], ctx) -> ToolResult:
         await asyncio.to_thread(_gui_click, sx, sy, button, double)
     except Exception as e:
         return ToolResult(f"点击失败：{e}", ok=False)
-    note = _click_note(sx, sy)
+    ok, note = _click_note(sx, sy)
     return ToolResult(f"已在截图上 ({x},{y}) 处 {'双击' if double else '点击'}"
-                      f"（屏幕坐标 ({sx},{sy})）。{note}", ok=not note)
+                      f"（屏幕坐标 ({sx},{sy})）。{note}", ok=ok)
 
 
 # ---------- GUI 拖拽 / 滚轮（任务模式专用） ----------
@@ -691,14 +783,15 @@ def _gui_drag(x1: int, y1: int, x2: int, y2: int, button: str = "left",
 
     win32api.SetCursorPos((int(x1), int(y1)))
     _time.sleep(0.12)                  # 起点先进入悬停态
-    win32api.mouse_event(down, 0, 0, 0, 0)
+    if _send_mouse_input(down) == 0:
+        raise RuntimeError("拖拽按下事件被系统拦截（目标窗口权限可能高于本程序）。")
     _time.sleep(0.08)                  # 按住一小会再动
     for i in range(1, steps + 1):
         win32api.SetCursorPos((int(round(x1 + (x2 - x1) * i / steps)),
                                int(round(y1 + (y2 - y1) * i / steps))))
         _time.sleep(delay)
     _time.sleep(0.1)                   # 到终点后顿一下再松手
-    win32api.mouse_event(up, 0, 0, 0, 0)
+    _send_mouse_input(up)
     _time.sleep(0.06)
     _mark_shot_stale()                 # 拖动可能改变界面（滚动/选中），旧截图不再可信
 
@@ -724,7 +817,7 @@ def _gui_scroll(x: int, y: int, lines: int) -> int:
     win32api.SetCursorPos((int(x), int(y)))
     _time.sleep(0.06)
     for _ in range(notches):
-        win32api.mouse_event(win32con.MOUSEEVENTF_WHEEL, 0, 0, step, 0)
+        _send_mouse_input(win32con.MOUSEEVENTF_WHEEL, step)
         _time.sleep(0.012)
     _time.sleep(0.05)
     _mark_shot_stale()                 # 滚过之后，之前量好的行号全部错位

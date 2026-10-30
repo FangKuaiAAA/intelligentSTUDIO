@@ -12,6 +12,7 @@
 """
 import asyncio
 import json
+import re
 from typing import Any, Dict, List, Optional
 
 from . import config
@@ -23,9 +24,20 @@ MAX_TEXT = 12000        # 回给模型的文字上限（防超长输出撑爆上
 
 _servers: List["McpServer"] = []
 
+# OpenAI 兼容接口要求 function.name 匹配 ^[a-zA-Z0-9_-]+$。
+# 很多 MCP 服务器的工具名带 . : / 空格或中文（如 filesystem.read_file、
+# github:create_issue），直接拼进 name 会被服务端 400 拒绝
+# （用户实测：配好 MCP 后每次对话都报 Invalid 'tools[36].function.name'）。
+# 这里把非法字符统一换成下划线；真正的调用仍用原始工具名（见 _make_handler）。
+_INVALID_NAME_CHARS = re.compile(r"[^a-zA-Z0-9_-]")
+
+
+def _sanitize_name(part: str) -> str:
+    return _INVALID_NAME_CHARS.sub("_", str(part or ""))
+
 
 def _tool_id(server_name: str, tool_name: str) -> str:
-    return f"mcp__{server_name}__{tool_name}"
+    return f"mcp__{_sanitize_name(server_name)}__{_sanitize_name(tool_name)}"
 
 
 def _content_to_result(res: Dict[str, Any]) -> ToolResult:
@@ -178,6 +190,13 @@ def _register(server: McpServer) -> int:
         if not tname:
             continue
         full = _tool_id(server.name, tname)
+        # 清洗后可能与已有工具重名（如 a.b 与 a_b 都会变成 a_b）：加序号保证唯一，
+        # 否则后注册的会把先注册的覆盖掉，模型看到的工具就少了。
+        if full in REGISTRY:
+            base, idx = full, 1
+            while full in REGISTRY:
+                idx += 1
+                full = f"{base}_{idx}"
         desc = str(t.get("description") or "").strip() or "（服务器未提供描述）"
         schema = t.get("inputSchema")
         if not isinstance(schema, dict) or schema.get("type") != "object":

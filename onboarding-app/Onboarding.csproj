@@ -17,6 +17,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Onboarding</AssemblyName>
+    <Company>方块AAA</Company>
+    <Product>intelligentSTUDIO</Product>
+    <Copyright>Copyright © 2026 方块AAA</Copyright>
     <ApplicationIcon>..\assets\icons\intelligentSTUDIO.ico</ApplicationIcon>
   </PropertyGroup>
 
