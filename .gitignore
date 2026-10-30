@@ -1,0 +1,30 @@
+# 个人配置（含 API Key 等本机信息，绝不入库）
+.appx_config.json
+config.json
+
+# 依赖与虚拟环境
+node_modules/
+.venv/
+.venv-photo/
+
+# 模型与构建产物
+models/
+dist/
+release/
+backend-dist/
+build-pyi/
+build-pyi-tmp/
+build-models-staging/
+build-src-staging/
+assets/office-cert/
+assets/photo-webview/
+bin/
+obj/
+*.pyc
+__pycache__/
+
+# 日志与临时文件
+logs/
+*.log
+*.tmp
+Thumbs.db
