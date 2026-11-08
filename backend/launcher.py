@@ -36,6 +36,43 @@ if sys.platform == "win32":
             except Exception:
                 pass
 
+# comtypes 需要把 COM 接口的 Python 包装写进 comtypes.gen。PyInstaller 打出来的程序
+# 通常位于 Program Files（不可写），默认位置写不进去时，音量 / 亮度这类走 Core Audio
+# 的接口会直接失败 —— 用户在安装版上看到的「音量接口失效、卡片里没有滑块」就是它
+# （源码态有写权限，所以开发环境一切正常）。这里把 gen 指到用户目录，并保证在
+# 任何 pycaw / comtypes 业务导入之前生效。
+if sys.platform == "win32":
+    try:
+        import comtypes.client as _ct_client
+        import comtypes.gen as _ct_gen
+
+        _comtypes_gen = os.path.join(
+            os.environ.get("LOCALAPPDATA") or os.path.expanduser("~"),
+            "intelligentSTUDIO", "comtypes-gen")
+        os.makedirs(_comtypes_gen, exist_ok=True)
+
+        # ⚠ 改 gen_dir 会让 comtypes.gen.__path__ 只指向新目录，而**随包发布**的预生成包装
+        #   （UIAutomationClient、stdole —— uiautomation 库直接 import 它们）还留在原目录。
+        #   不先搬过去，uiautomation 会 ImportError，UIA 全挂（uia_click / uia_list_controls
+        #   都不可用）。所以在切目录之前把已有的 .py 复制过去，只补缺的、不覆盖。
+        _src_gen = os.path.dirname(getattr(_ct_gen, "__file__", "") or "")
+        if _src_gen and os.path.isdir(_src_gen) and \
+                os.path.abspath(_src_gen) != os.path.abspath(_comtypes_gen):
+            import glob
+            import shutil
+
+            for _f in glob.glob(os.path.join(_src_gen, "*.py")):
+                _dst = os.path.join(_comtypes_gen, os.path.basename(_f))
+                if not os.path.exists(_dst):
+                    try:
+                        shutil.copy2(_f, _dst)
+                    except Exception:
+                        pass
+
+        _ct_client.gen_dir = _comtypes_gen
+    except Exception:
+        pass
+
 # 顶层服务脚本（相对 backend 目录）
 SERVICES = {
     "main": "main.py",

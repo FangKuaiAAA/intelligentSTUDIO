@@ -161,7 +161,14 @@ def delete_all_sessions() -> int:
 
 
 def history_for_model(session_id: str, max_turns: int = 20) -> List[Dict[str, str]]:
-    """把历史记录转成模型可用的消息列表（只保留 user/assistant 文本）。"""
+    """把历史记录转成模型可用的消息列表。
+
+    assistant 消息会附上**本轮真实执行过的操作**（历史里的 operations 字段）。
+    只回灌纯文字是不够的：续聊时模型看得到自己说过「操作完成」，却看不到究竟
+    做了什么、哪一步没成，于是会答「我不记得做过」「我上一轮那句是无效的」这类
+    自我否定（用户实测）。operations 里失败的那些本来就带「（未成功）」后缀
+    （见 llm.py 里 `op_text + ("" if result.ok else "（未成功）")`），直接拼上即可。
+    """
     session = _read(session_id)
     if not session:
         return []
@@ -169,6 +176,12 @@ def history_for_model(session_id: str, max_turns: int = 20) -> List[Dict[str, st
     for t in (session.get("turns") or [])[-max_turns * 2:]:
         role = t.get("role")
         content = t.get("content")
-        if role in ("user", "assistant") and content:
-            msgs.append({"role": role, "content": str(content)})
+        if role not in ("user", "assistant") or not content:
+            continue
+        text = str(content)
+        if role == "assistant":
+            ops = [str(o).strip() for o in (t.get("operations") or []) if str(o).strip()]
+            if ops:
+                text += "\n（本轮实际执行的操作：" + "；".join(ops) + "）"
+        msgs.append({"role": role, "content": text})
     return msgs

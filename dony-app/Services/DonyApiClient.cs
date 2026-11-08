@@ -115,10 +115,15 @@ public class DonyApiClient
         await using var stream = await resp.Content.ReadAsStreamAsync(ct);
         using var reader = new StreamReader(stream);
 
-        while (!reader.EndOfStream)
+        // ⚠ 不能用 `while (!reader.EndOfStream)`：StreamReader.EndOfStream 是**同步**属性，
+        //   流里暂时没有数据时它会就地阻塞读。Dony 执行工具期间 SSE 可能几分钟不发一个字节，
+        //   这一句就把 UI 线程钉死 —— 用户看到的「Dony 操作中 app 已停止运行」就是它。
+        //   改成异步读、读到 null（流结束）才退出。
+        while (true)
         {
             ct.ThrowIfCancellationRequested();
             var line = await reader.ReadLineAsync(ct);
+            if (line is null) break;
             if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data: "))
                 continue;
             ChatEvent? ev = null;

@@ -1,3 +1,4 @@
+using IntelligentStudio.Onboarding.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 
@@ -35,6 +36,10 @@ public partial class App : Application
 
         Window = new MainWindow(ReadStartStep());
         Window.Activate();
+
+        // 用户直接打开引导时若主进程没在跑就静默拉起；主进程自己拉起引导时端口已在监听，
+        // 这里会立即返回，不会重复启动。
+        _ = MainProcessLauncher.EnsureRunningAsync();
     }
 
     /// <summary>调试用：--step N 直接从第 N 页（1 基）开始。</summary>

@@ -437,13 +437,55 @@ def _shot_hint() -> str:
 
 
 def _shot_to_screen(x: int, y: int) -> Tuple[int, int]:
-    """把「最近一次截图上的像素坐标」换算成屏幕像素（无留白，只有缩放）。"""
+    """把「最近一次截图上的像素坐标」换算成屏幕像素（无留白，只有缩放）。
+
+    换算前先做三道体检 —— 它们都是**在真正点下去之前**拦住错误坐标，
+    因为一旦点出去，错就已经发生了（早先的版本是先点、后才发现越界）。
+
+    1. 图幅：坐标必须落在最近那张图的宽高内，否则它不是这张图上的像素；
+    2. 窗口位移：截图之后窗口被拖动/改过尺寸时，region 与 scale 全部失效；
+    3. 落点：换算结果必须仍在这张截图覆盖的屏幕区域内。
+    """
     m = _SHOT_META
     if not m or "region" not in m:
         raise RuntimeError("还没有截过图：先用 screenshot_understand 截一次，再按图上的位置点击")
-    x0, y0 = m["region"][0], m["region"][1]
+
+    x0, y0, x1, y1 = m["region"]
+    iw, ih = m.get("image") or (0, 0)
     scale = float(m.get("scale") or 1.0)
-    return int(round(x0 + x * scale)), int(round(y0 + y * scale))
+
+    if iw and ih and not (0 <= x < iw and 0 <= y < ih):
+        raise RuntimeError(
+            f"图坐标 ({x},{y}) 超出最近那张截图的图幅 {iw}x{ih}，它不可能是这张图上的像素。"
+            f"（多半是拿另一张截图的坐标，或者直接把屏幕坐标传了进来）"
+            f"请重新截图再量；屏幕坐标请改用 gui_click。")
+
+    # 窗口在截图之后被拖动或改过尺寸：region 是截图那一刻的位置，继续用会整体偏移
+    hwnd = int(m.get("hwnd") or 0)
+    if hwnd:
+        try:
+            left, top, right, bottom = _window_bounds(hwnd)
+            moved = (left, top) != (x0, y0)
+            resized = (right - left, bottom - top) != (x1 - x0, y1 - y0)
+            if moved or resized:
+                raise RuntimeError(
+                    f"窗口在截图之后变过（截图时 ({x0},{y0}) {x1 - x0}x{y1 - y0}，"
+                    f"现在 ({left},{top}) {right - left}x{bottom - top}），"
+                    f"旧图上的坐标已经对不上。请重新截图后再点。")
+        except RuntimeError:
+            raise
+        except Exception:
+            pass          # 窗口已关闭 / 取不到位置时不阻断，交给下面的落点校验
+
+    sx, sy = int(round(x0 + x * scale)), int(round(y0 + y * scale))
+
+    if not (x0 <= sx <= x1 and y0 <= sy <= y1):
+        raise RuntimeError(
+            f"换算出的屏幕坐标 ({sx},{sy}) 不在最近那张截图"
+            f"（窗口「{m.get('window') or '整屏'}」，区域 ({x0},{y0})-({x1},{y1})）范围内。"
+            f"说明你用的图上坐标不属于这张截图，请重新截图后再点。")
+
+    return sx, sy
 
 
 @tool("screenshot_understand", "查看屏幕内容",
@@ -593,7 +635,11 @@ def _looks_like_shot_coords(x: int, y: int) -> bool:
         return True                         # 图幅内、却不在截图覆盖的屏幕区域
     if scale > 1.0:
         return True                         # 缩放过 → 重叠区必然是图坐标
-    return x0 != 0 or y0 != 0               # 无缩放但有偏移 → 同样高度可疑
+    # ⚠ 这里**不要**再判 `x0 != 0`：窗口不在屏幕左上角时，图幅内的坐标同时也可能是
+    #   完全合法的屏幕坐标（UIA 给的 @(x,y) 就常常落在这一块）。上一版加了这条，
+    #   结果窗口化应用的每一次 gui_click 都被误拒（用户实测「CC Switch 一开始能点、
+    #   后来所有点击都被拒」）。歧义交给提示去解决，见 _click_note。
+    return False
 
 
 def _occluder(x: int, y: int) -> str:
@@ -657,7 +703,15 @@ def _click_note(x: int, y: int) -> Tuple[bool, str]:
         return True, ""
     x0, y0, x1, y1 = m["region"]
     if x0 <= x <= x1 and y0 <= y <= y1:
-        return True, _stale_note()
+        note = _stale_note()
+        # 窗口截图带偏移时，"图幅内"与"屏幕区域内"大面积重叠：不拒绝（会误伤合法屏幕坐标），
+        # 只在结果里提醒一句，让模型自己核对是不是把图上像素传进来了。
+        iw, ih = m.get("image") or (0, 0)
+        if (m.get("hwnd") and (x0 != 0 or y0 != 0) and iw and ih
+                and 0 <= x < iw and 0 <= y < ih):
+            note += (" ⚠ 这个坐标同时也落在最近那张截图的图幅内；"
+                     "如果你量的是图上的像素，应改用 shot_click。")
+        return True, note
     where = f"窗口「{m['window']}」" if m.get("window") else "整屏"
     return False, (f" ⚠ 这个坐标不在最近一次截图（{where}，屏幕区域 "
                    f"({x0},{y0})-({x1},{y1})）的范围内。"
@@ -716,7 +770,9 @@ async def gui_click(args: Dict[str, Any], ctx) -> ToolResult:
 
 @tool("shot_click", "按图点击",
       "坐标填**最近一次 screenshot_understand 那张图上的像素位置**（你看到目标在图上哪里就填哪里，"
-      "后端会按缩放换算成屏幕坐标，你不用做任何计算），适合“看图点目标”。"
+      "后端会按缩放换算成屏幕坐标），适合“看图点目标”。"
+      "**不要自己把图坐标换算成屏幕坐标再传给 gui_click**：你不知道后端用的是哪张截图、"
+      "当前缩放多少，自己加偏移必然算错（实测会整体偏移一两百像素）。一律把图坐标交给本工具。"
       "如果坐标是 uia_list_controls 返回的 @(x,y)（那些本身已是屏幕像素），请改用 gui_click。"
       "button: left/right。double: 是否双击。",
       {"x": {"type": "integer", "required": True},
@@ -743,8 +799,16 @@ async def shot_click(args: Dict[str, Any], ctx) -> ToolResult:
     except Exception as e:
         return ToolResult(f"点击失败：{e}", ok=False)
     ok, note = _click_note(sx, sy)
+    m = _SHOT_META
+    # 把"这次换算用的是哪张截图"写进结果：模型多次截图后很容易拿旧图的坐标来点，
+    # 回显基准能让它当场发现对不上（实测它曾按 (489,428) 的旧基准去点 (610,554) 的窗口）。
+    base = ""
+    if m and "region" in m:
+        r = m["region"]
+        base = (f"（基准：窗口「{m.get('window') or '整屏'}」的截图 "
+                f"({r[0]},{r[1]})-({r[2]},{r[3]})）")
     return ToolResult(f"已在截图上 ({x},{y}) 处 {'双击' if double else '点击'}"
-                      f"（屏幕坐标 ({sx},{sy})）。{note}", ok=ok)
+                      f"（屏幕坐标 ({sx},{sy})）。{base}{note}", ok=ok)
 
 
 # ---------- GUI 拖拽 / 滚轮（任务模式专用） ----------

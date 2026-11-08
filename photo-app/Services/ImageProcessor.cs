@@ -42,6 +42,19 @@ public sealed class CropSettings
 }
 
 /// <summary>
+/// <summary>扩展区（原图矩形之外）的填充方式。</summary>
+public enum OutpaintFill
+{
+    /// <summary>边缘像素拉伸 + 轻度模糊。预览用，视觉上更接近"最后大概长什么样"。</summary>
+    Blur,
+
+    /// <summary>
+    /// 最外圈像素的平均色。提交给模型用：有色相/明度方向，但没有条纹结构，
+    /// 模型不会把它当成已有内容照抄（拉伸延展会被原样保留，等于没补）。
+    /// </summary>
+    EdgeAverage,
+}
+
 /// CPU 像素管线：几何变换、滤镜、遮罩运算。全部按行并行，不做逐像素的对象分配。
 /// 预览与导出共用同一套实现，只有输入分辨率不同。
 /// </summary>
@@ -544,7 +557,7 @@ public static class ImageProcessor
     /// </summary>
     public static (SoftwareBitmap Canvas, byte[] Mask) ComposeOutpaint(
         SoftwareBitmap source, double left, double top, double right, double bottom,
-        int maxLongEdge = 1024)
+        int maxLongEdge = 1024, OutpaintFill fill = OutpaintFill.Blur)
     {
         left = Math.Max(0, left);
         top = Math.Max(0, top);
@@ -607,7 +620,9 @@ public static class ImageProcessor
         }
 
         var mask = new byte[canvasWidth * canvasHeight];
-        // 过渡带按画布长边取比例，避免画布尺寸变化时融合宽度忽大忽小
+        // 过渡带：mask 往原图内部多算一圈，让重绘区与原图的接缝**藏在原图里**，
+        // 比正好切在边界上自然。
+        // ⚠ 但这一圈**不能填灰** —— 见下方「外围填灰」：它保留原图像素，只标 mask。
         var inset = Math.Max(4, (int)Math.Round(Math.Max(canvasWidth, canvasHeight) * 0.008));
         for (var y = 0; y < canvasHeight; y++)
         {
@@ -619,19 +634,75 @@ public static class ImageProcessor
             }
         }
 
-        // 边缘拉伸后对扩展区做轻度模糊，避免出现硬条纹；照片主体不动
-        var softened = BlurRgb(canvasPixels, canvasWidth, canvasHeight, Math.Max(2, canvasWidth / 60));
-        for (var index = 0; index < mask.Length; index++)
+        // 外围（原图矩形之外）的填充方式，由调用方决定：
+        //   · 预览用 Blur（边缘拉伸+模糊）—— 视觉上更接近"最后大概长什么样"；
+        //   · 提交给模型用 EdgeAverage（最外圈平均色）—— 有色相方向但无条纹结构。
+        // ⚠ 都只作用于**原图矩形之外**：inset 过渡带虽然在 mask 里，但必须保留原图像素。
+        if (fill == OutpaintFill.EdgeAverage)
         {
-            if (mask[index] <= 127) continue;
+            // 取原图最外一圈像素的均值，铺满扩展区。
+            // 相比"边缘拉伸+模糊"：纯色块没有条纹结构，模型不会把它当成已有内容照抄
+            // （实测拉伸延展会被原样保留，扩展区只剩条纹、等于没补）。
+            // 相比"清零"：又给了明确的色相/明度方向，模型不至于在空白处凭空瞎编主体。
+            long sumR = 0, sumG = 0, sumB = 0, count = 0;
+            for (var x = 0; x < innerWidth; x++)
+            {
+                for (var edge = 0; edge < 2; edge++)
+                {
+                    var yy = edge == 0 ? 0 : innerHeight - 1;
+                    var p = yy * innerStride + x * 4;
+                    sumR += innerPixels[p]; sumG += innerPixels[p + 1]; sumB += innerPixels[p + 2];
+                    count++;
+                }
+            }
+            for (var y = 1; y < innerHeight - 1; y++)
+            {
+                for (var edge = 0; edge < 2; edge++)
+                {
+                    var xx = edge == 0 ? 0 : innerWidth - 1;
+                    var p = y * innerStride + xx * 4;
+                    sumR += innerPixels[p]; sumG += innerPixels[p + 1]; sumB += innerPixels[p + 2];
+                    count++;
+                }
+            }
 
-            var pixel = index * 4;
-            canvasPixels[pixel] = softened[pixel];
-            canvasPixels[pixel + 1] = softened[pixel + 1];
-            canvasPixels[pixel + 2] = softened[pixel + 2];
+            var avgR = (byte)(count > 0 ? sumR / count : 127);
+            var avgG = (byte)(count > 0 ? sumG / count : 127);
+            var avgB = (byte)(count > 0 ? sumB / count : 127);
+
+            for (var y = 0; y < canvasHeight; y++)
+            {
+                var inInnerRow = y >= offsetY && y < offsetY + innerHeight;
+                for (var x = 0; x < canvasWidth; x++)
+                {
+                    if (inInnerRow && x >= offsetX && x < offsetX + innerWidth) continue;
+
+                    var pixel = (y * canvasWidth + x) * 4;
+                    canvasPixels[pixel] = avgR;
+                    canvasPixels[pixel + 1] = avgG;
+                    canvasPixels[pixel + 2] = avgB;
+                }
+            }
+        }
+        else
+        {
+            var softened = BlurRgb(canvasPixels, canvasWidth, canvasHeight, Math.Max(2, canvasWidth / 60));
+            for (var y = 0; y < canvasHeight; y++)
+            {
+                var inInnerRow = y >= offsetY && y < offsetY + innerHeight;
+                for (var x = 0; x < canvasWidth; x++)
+                {
+                    if (inInnerRow && x >= offsetX && x < offsetX + innerWidth) continue;
+
+                    var pixel = (y * canvasWidth + x) * 4;
+                    canvasPixels[pixel] = softened[pixel];
+                    canvasPixels[pixel + 1] = softened[pixel + 1];
+                    canvasPixels[pixel + 2] = softened[pixel + 2];
+                }
+            }
         }
 
-        // 过渡带羽化：重绘区与保留区的接缝更自然
+        // 接缝羽化：过渡带与原图的交界要柔和，但不能过大（会把重绘结果和原图搅在一起）
         mask = FeatherMask(mask, canvasWidth, canvasHeight, 4);
 
         return (ImageCodec.FromBgra(canvasWidth, canvasHeight, canvasPixels), mask);

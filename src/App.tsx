@@ -649,6 +649,17 @@ function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [handleClose, visualMode])
 
+  // 任务执行期间覆盖层主动让出鼠标与焦点（否则目标窗口收不到 hover/点击），
+  // 网页收不到按键 —— 主进程这时挂一个全局 Esc 兜底（见 main.js 的 registerTaskEscape），
+  // 这里接住它，与直接按 Esc 走同一个 handleClose。
+  useEffect(() => {
+    const off = window.electronAPI?.onTaskEscape?.(() => {
+      if (stateRef.current === 'idle' || visualMode) return
+      void handleClose()
+    })
+    return () => off?.()
+  }, [handleClose, visualMode])
+
   const active = state !== 'idle'
   const inVoiceTransition = isFollowUpTransition && voiceMode
   // 键入模式：输入框**和光边/光斑同时**从屏幕底部飞入 —— 所以不再排除 waking。

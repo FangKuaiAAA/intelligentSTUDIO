@@ -42,6 +42,8 @@ export interface ElectronAPI {
   onVisualWake: (callback: () => void) => () => void
   /** 视觉智能期间由主进程全局捕获并转发的 Esc（窗口未聚焦时网页收不到按键） */
   onVisualEscape: (callback: () => void) => () => void
+  /** 任务执行期间主进程全局捕获并转发的 Esc（覆盖层已让出焦点，网页收不到按键） */
+  onTaskEscape: (callback: () => void) => () => void
   /** 启动彩排：真跑一遍光斑/光边（窗口真显示但近乎全透明），只为把"首次独有"的一次性绘制成本提前付掉 */
   onWarmup: (callback: () => void) => () => void
   /** 彩排结束回报（含渲染进程自己的兜底超时） */

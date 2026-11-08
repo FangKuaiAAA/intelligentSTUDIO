@@ -358,49 +358,30 @@ public sealed partial class ExpandPanel : UserControl, IEditorPanel
 
         var insets = ComputeInsets(input.PixelWidth, input.PixelHeight);
 
-        var (canvas, mask) = await Task.Run(() => ImageProcessor.ComposeOutpaint(
-            input, insets.Left, insets.Top, insets.Right, insets.Bottom));
-
-        // 提交前把扩展区挖成中性灰：模糊延展会被模型当成已有内容而原样保留
-        using var filled = await Task.Run(() => ImageProcessor.FillMasked(canvas, mask));
-
-        var canvasWidth = filled.PixelWidth;
-        var canvasHeight = filled.PixelHeight;
-
-        var canvasPng = await ImageCodec.EncodePngAsync(filled);
-        var maskPng = await ImageCodec.EncodeMaskPngAsync(mask, canvasWidth, canvasHeight);
-
         _host.BeginBusy("正在扩展…", bottom: true);
         _host.UpdateBusy("正在扩展…", 0.12);
 
         try
         {
-            byte[] repaired;
+            SoftwareBitmap result;
 
             if (_useApi)
             {
-                var outcome = await GenerationClient.Instance.InpaintAsync(
-                    canvasPng, maskPng, canvasWidth, canvasHeight, outpaint: true,
-                    System.Threading.CancellationToken.None);
-                repaired = outcome.Png;
+                result = await ExpandWithApiAsync(input, insets);
             }
             else
             {
                 if (!await PhotoServiceClient.Instance.EnsureRunningAsync())
                     throw new InvalidOperationException("推理服务未就绪。请运行 run-photo-editor.bat 后重试。");
 
-                repaired = await PhotoServiceClient.Instance.MoebiusInpaintAsync(
-                    canvasPng, maskPng, 20, System.Threading.CancellationToken.None);
+                result = await ExpandStepwiseAsync(input, insets);
             }
-
-            using var returned = await ImageCodec.DecodeAsync(repaired);
-            var result = await ImageCodec.ResizeAsync(returned, canvasWidth, canvasHeight);
 
             _host.Session.Commit(EditStage.Expand, result, insets);
             await _host.RefreshSurfaceAsync();
 
-            AppLog.Info("扩展完成", $"{canvasWidth}×{canvasHeight} {(_useApi ? "接口" : "内置")}");
-            _host.ShowToast($"已扩展到 {canvasWidth}×{canvasHeight}。");
+            AppLog.Info("扩展完成", $"{result.PixelWidth}×{result.PixelHeight} {(_useApi ? "接口" : "内置")}");
+            _host.ShowToast($"已扩展到 {result.PixelWidth}×{result.PixelHeight}。");
         }
         catch (ImageApiException api)
         {
@@ -415,7 +396,81 @@ public sealed partial class ExpandPanel : UserControl, IEditorPanel
         finally
         {
             _host.EndBusy();
-            canvas.Dispose();
+        }
+    }
+
+    /// <summary>接口模型（12B + prompt）一次成型。</summary>
+    private async Task<SoftwareBitmap> ExpandWithApiAsync(
+        SoftwareBitmap input, (double Left, double Top, double Right, double Bottom) insets)
+    {
+        var (canvas, mask) = await Task.Run(() => ImageProcessor.ComposeOutpaint(
+            input, insets.Left, insets.Top, insets.Right, insets.Bottom));
+        using (canvas)
+        {
+            var canvasPng = await ImageCodec.EncodePngAsync(canvas);
+            var maskPng = await ImageCodec.EncodeMaskPngAsync(mask, canvas.PixelWidth, canvas.PixelHeight);
+
+            var outcome = await GenerationClient.Instance.InpaintAsync(
+                canvasPng, maskPng, canvas.PixelWidth, canvas.PixelHeight, outpaint: true,
+                System.Threading.CancellationToken.None);
+
+            using var returned = await ImageCodec.DecodeAsync(outcome.Png);
+            return await ImageCodec.ResizeAsync(returned, canvas.PixelWidth, canvas.PixelHeight);
+        }
+    }
+
+    /// <summary>
+    /// 内置模型分步扩展：一次只扩一小条（≤12%），逐步逼近目标。
+    ///
+    /// 内置模型是 512 输入、且没有文本条件。一次大比例扩展时，遮罩区会被清零成一大片中灰，
+    /// 模型没有任何可参考的上下文，只能在空白处凭空编出一个主体（实测右侧会长出怪东西）。
+    /// 拆成小步后，每一步的灰带都很窄、模型两侧都是真实画面，于是既能生成内容、又不会瞎编。
+    /// </summary>
+    private async Task<SoftwareBitmap> ExpandStepwiseAsync(
+        SoftwareBitmap input, (double Left, double Top, double Right, double Bottom) insets)
+    {
+        const double MaxStep = 0.12;
+        var span = Math.Max(insets.Left + insets.Right, insets.Top + insets.Bottom);
+        var steps = Math.Max(1, (int)Math.Ceiling(span / MaxStep));
+
+        var stepLeft = insets.Left / steps;
+        var stepTop = insets.Top / steps;
+        var stepRight = insets.Right / steps;
+        var stepBottom = insets.Bottom / steps;
+
+        var current = input;
+        var ownsCurrent = false;
+        try
+        {
+            for (var i = 0; i < steps; i++)
+            {
+                _host.UpdateBusy($"正在扩展… {i + 1}/{steps}", 0.12 + 0.82 * (i + 1) / steps);
+
+                var (canvas, mask) = await Task.Run(() => ImageProcessor.ComposeOutpaint(
+                    current, stepLeft, stepTop, stepRight, stepBottom, int.MaxValue));
+                using (canvas)
+                {
+                    var canvasPng = await ImageCodec.EncodePngAsync(canvas);
+                    var maskPng = await ImageCodec.EncodeMaskPngAsync(mask, canvas.PixelWidth, canvas.PixelHeight);
+
+                    var repaired = await PhotoServiceClient.Instance.MoebiusInpaintAsync(
+                        canvasPng, maskPng, 20, outpaint: false,
+                        ct: System.Threading.CancellationToken.None);
+
+                    using var returned = await ImageCodec.DecodeAsync(repaired);
+                    var next = await ImageCodec.ResizeAsync(returned, canvas.PixelWidth, canvas.PixelHeight);
+
+                    if (ownsCurrent) current.Dispose();
+                    current = next;
+                    ownsCurrent = true;
+                }
+            }
+            return current;
+        }
+        catch
+        {
+            if (ownsCurrent) current.Dispose();
+            throw;
         }
     }
 

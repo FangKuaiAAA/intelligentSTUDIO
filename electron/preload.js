@@ -31,6 +31,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onVisualEscape: (callback) => {
     ipcRenderer.on('visual-escape', () => callback()); return () => ipcRenderer.removeAllListeners('visual-escape')
   },
+  // 任务执行期间主进程全局捕获的 Esc：那时覆盖层会主动让出鼠标与焦点（否则目标窗口
+  // 收不到 hover/点击），网页自己收不到按键，主进程转发过来，与直接按 Esc 同一条退出路径。
+  onTaskEscape: (callback) => {
+    ipcRenderer.on('task-escape', () => callback()); return () => ipcRenderer.removeAllListeners('task-escape')
+  },
   // 启动彩排：主进程让渲染进程"真跑一遍光斑+光边"（窗口真显示、整窗近乎透明）
   onWarmup: (callback) => {
     ipcRenderer.on('warmup', () => callback()); return () => ipcRenderer.removeAllListeners('warmup')

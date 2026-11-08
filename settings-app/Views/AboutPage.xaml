@@ -21,7 +21,7 @@
                     </Border>
                     <TextBlock Text="intelligentSTUDIO" FontSize="22" FontWeight="SemiBold"
                                TextWrapping="Wrap" />
-                    <TextBlock Text="版本 0.1.0"
+                    <TextBlock Text="版本 1.1.0"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     <TextBlock Style="{StaticResource DonySecondaryStyle}" FontSize="13"
                                Text="intelligentSTUDIO 允许每台 Windows 电脑拥有“系统级别”AI 能力：唤醒 Dony 对话，用视觉智能理解屏幕内容，用书写辅助改写文字，用图乐园和照片编辑器处理图像。模型服务由第三方提供，生成结果请自行核对。" />

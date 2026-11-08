@@ -74,5 +74,8 @@ public partial class App : Application
 
         MainWindow = new MainWindow();
         MainWindow.Activate();
+
+        // 打开照片编辑器时若主进程没在跑就静默拉起（依赖它的本地服务）
+        _ = MainProcessLauncher.EnsureRunningAsync();
     }
 }

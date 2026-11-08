@@ -1,3 +1,4 @@
+using Dony.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 
@@ -43,5 +44,9 @@ public partial class App : Application
 
         MainWindow = new MainWindow();
         MainWindow.Activate();
+
+        // 打开 Dony 对话时若主进程没在跑就静默拉起：历史 / 语音 / 文件这些页面
+        // 都靠主进程的 8767、8769 本地服务，没起来时只能看到"连不上"。
+        _ = MainProcessLauncher.EnsureRunningAsync();
     }
 }

@@ -43,7 +43,11 @@ function spawnService(service, pythonArgs) {
   const cwd = USE_BACKEND_EXE ? path.dirname(BACKEND_EXE) : path.join(__dirname, '..')
   console.log(`[${service}] spawn =`, target, args.join(' '))
 
-  const child = spawn(target, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'], env: serviceEnv() })
+  // windowsHide 必须显式给：backend 是控制台程序，不隐藏就会弹一个黑色命令行窗口
+  // （从设置页或子应用拉起主进程时最明显，用户实测「运行设置会弹 cmd」）。
+  const child = spawn(target, args, {
+    cwd, stdio: ['ignore', 'pipe', 'pipe'], env: serviceEnv(), windowsHide: true,
+  })
 
   // 关键：spawn 失败（如 ENOENT）会以 'error' 事件抛出，不监听会变成主进程未捕获异常并弹窗
   child.on('error', (err) => {
@@ -90,6 +94,8 @@ let visualModeActive = false
 let writingModeActive = false
 // 视觉智能期间全局捕获 Esc 的状态。见 registerVisualEscape()。
 let visualEscapeRegistered = false
+// 任务执行期间的全局 Esc（与视觉智能共用 'Escape' 这个键，但两者不会同时活跃）
+let taskEscapeRegistered = false
 // 渲染进程上报的真实界面状态（idle/holding/waking/ready/loading/responding/followUp）
 let overlayState = 'idle'
 let idleHideTimer = null
@@ -320,6 +326,8 @@ function createOverlayWindow() {
   overlayWindow.on('hide', () => {
     if (isAwake) console.log('[hotkey] 窗口隐藏 → 清除已唤醒标记')
     isAwake = false; clearTimeout(awakeSafetyTimer)
+    // 兜底：任务期间的全局 Esc 不能残留，否则窗口藏了之后按 Esc 还会被它抢走
+    unregisterTaskEscape()
   })
   // 任务栏按钮是"窗口被激活/重新显示"时被 Windows 补上的，所以这些时机都要补刀。
   // （只靠创建时的 skipTaskbar:true 不够 —— 实测鼠标一进视觉智能窗口就冒出图标。）
@@ -599,6 +607,7 @@ function hideOverlay() {
   if (voiceHoldTimer) { clearTimeout(voiceHoldTimer); voiceHoldTimer = null }
   if (overlayFadeTimer) { clearInterval(overlayFadeTimer); overlayFadeTimer = null }
   isAwake = false; leaveVisualMode(); leaveWritingMode()
+  unregisterTaskEscape()
   clearTimeout(awakeSafetyTimer); contentForcedPassthrough = false
   // 先释放焦点、让界面复位，然后隐藏窗口。
   // 尺寸恢复一律交给 restoreOverlayTop()（下次唤醒、窗口还藏着时执行），
@@ -820,6 +829,58 @@ function unregisterVisualEscape() {
 function leaveVisualMode() {
   visualModeActive = false
   unregisterVisualEscape()
+}
+
+// ================= 任务执行期间的 Esc 退出 =================
+// 任务执行时覆盖层必须主动让出鼠标与焦点（见 releaseOverlayForTask）：
+// 它是一层全屏置顶窗，只要还在接收鼠标，落在目标窗口上的 hover / 按下 / 抬起就全被它吃掉，
+// 表现为「光标移到位了，但目标控件连悬停高亮都没有、更点不动」。
+// 代价是一旦 blur()，渲染进程的 window.keydown 就收不到 Esc —— 和视觉智能是同一个问题，
+// 所以这段时间挂一个全局 Esc，收到后转发给渲染进程，与直接按 Esc 走同一条退出路径。
+//
+// ⚠ 与视觉智能共用 'Escape'：两者不会同时活跃，但注册/注销必须各自持有标记，
+//   避免一方把另一方正在用的快捷键注销掉。
+function registerTaskEscape() {
+  if (taskEscapeRegistered) return
+  if (visualEscapeRegistered) return      // 视觉智能正持有，不重复注册
+  try {
+    taskEscapeRegistered = globalShortcut.register('Escape', () => {
+      if (!isAwake || !overlayWindow) return
+      console.log('[hotkey] Esc（任务执行）→ 中止当前任务')
+      overlayWindow.webContents.send('task-escape')
+    })
+    console.log(taskEscapeRegistered
+      ? '[OK] Escape (task)'
+      : '[WARN] Escape 被其它程序占用，任务中只能靠窗口聚焦时的 Esc')
+  } catch (err) {
+    taskEscapeRegistered = false
+    console.warn('[WARN] 注册 Escape（任务）失败', err)
+  }
+}
+
+function unregisterTaskEscape() {
+  if (!taskEscapeRegistered) return
+  try { globalShortcut.unregister('Escape') } catch (_err) { /* 忽略 */ }
+  taskEscapeRegistered = false
+}
+
+/** 任务开始：让出鼠标与焦点，目标窗口才收得到 hover / 点击 / 键盘。 */
+function releaseOverlayForTask() {
+  if (!overlayWindow || overlayWindow.isDestroyed()) return
+  setOverlayTakeMouse(false)              // 关键：不放行鼠标，事件全被这层吃掉
+  setOverlayFocusable(false)
+  try { overlayWindow.blur() } catch (_err) { /* 窗口正在销毁时忽略 */ }
+  registerTaskEscape()                    // 让出焦点后靠全局 Esc 兜住「中止」
+  console.log('[focus] 任务开始 → 让出鼠标与焦点，Esc 交由全局兜底')
+}
+
+/** 任务结束（要用户看结果 / 打字）：把鼠标与焦点收回来。 */
+function reclaimOverlayAfterTask() {
+  if (!overlayWindow || overlayWindow.isDestroyed()) return
+  unregisterTaskEscape()
+  setOverlayTakeMouse(true)
+  setOverlayFocusable(true)
+  console.log('[focus] 任务结束 → 收回鼠标与焦点')
 }
 
 // ================= 书写辅助（选区改写）=================
@@ -2057,18 +2118,28 @@ if (hasSingleInstanceLock) app.whenReady().then(async () => {
   ipcMain.handle('suggestions', () => suggestionLibrary())
   // 渲染进程上报界面状态：回到 idle 就说明这一轮结束，顺手清掉“已唤醒”标记
   ipcMain.on('overlay-state', (_event, s) => {
+    const prevState = overlayState
     overlayState = typeof s === 'string' && s ? s : 'idle'
     // 执行期间让覆盖层彻底不抢焦点：这段时间用户可能打开新程序、或弹出 UAC，
     // 焦点应该归它们，而不是被这层全屏置顶窗口占着。
     // 需要用户输入的状态（ready / followUp / asking）再恢复可聚焦。
     if (overlayWindow && overlayWindow.isVisible()) {
-      // 「需不需要用户操作」这件事由 setVisualMousePassthrough 那条规则实时接管，
-      // 这里只在回到需要输入的状态时恢复可聚焦（询问/追问期间不动它，免得把输入框又关掉）。
-      if (overlayState !== 'loading') setOverlayFocusable(true)
-      // 需要用户输入的状态要**真的把焦点拿回来**：只恢复"可聚焦"是不够的——
-      // 实测一轮跑完回到追问时焦点已经跑到别的窗口，输入框敲不进字，得手动再点一下。
-      if (overlayState === 'followUp' || overlayState === 'asking') {
-        if (!overlayWindow.isFocused()) overlayWindow.focus()
+      if (overlayState === 'loading') {
+        // 进入执行：**鼠标也要一起让出**。只关可聚焦是不够的 —— 这层窗仍然接收鼠标，
+        // 落在目标窗口上的 hover / 按下 / 抬起会全被它吃掉（用户实测：光标位置正常，
+        // 但目标控件连悬停高亮都没有、更点不动）。
+        if (prevState !== 'loading') releaseOverlayForTask()
+      } else {
+        // 离开执行：把鼠标与焦点收回来（同时注销任务期间的全局 Esc）
+        if (prevState === 'loading') reclaimOverlayAfterTask()
+        // 「需不需要用户操作」这件事由 setVisualMousePassthrough 那条规则实时接管，
+        // 这里只在回到需要输入的状态时恢复可聚焦（询问/追问期间不动它，免得把输入框又关掉）。
+        setOverlayFocusable(true)
+        // 需要用户输入的状态要**真的把焦点拿回来**：只恢复"可聚焦"是不够的——
+        // 实测一轮跑完回到追问时焦点已经跑到别的窗口，输入框敲不进字，得手动再点一下。
+        if (overlayState === 'followUp' || overlayState === 'asking') {
+          if (!overlayWindow.isFocused()) overlayWindow.focus()
+        }
       }
     }
     if (overlayState !== 'idle') { clearTimeout(idleHideTimer); idleHideTimer = null; return }

@@ -117,14 +117,19 @@ public sealed class PhotoServiceClient
     }
 
     /// <summary>Moebius：无文本条件的局部修补，以遮罩为中心裁窗口后整体重绘。</summary>
+    /// <param name="outpaint">
+    /// 扩展场景传 true：画布外围已用「边缘拉伸 + 轻微模糊」打好底，让模型保留它作为初始填充，
+    /// 顺着画面延续，而不是从空白里凭空生成主体。擦除必须传 false（否则物体擦不掉）。
+    /// </param>
     public async Task<byte[]> MoebiusInpaintAsync(byte[] imagePng, byte[] maskPng,
-        int steps = 20, CancellationToken ct = default)
+        int steps = 20, bool outpaint = false, CancellationToken ct = default)
     {
         var payload = new Dictionary<string, object>
         {
             ["image"] = Convert.ToBase64String(imagePng),
             ["mask"] = Convert.ToBase64String(maskPng),
             ["steps"] = steps,
+            ["outpaint"] = outpaint,
         };
 
         using var response = await Http.PostAsJsonAsync($"{BaseUrl}/api/moebius/inpaint", payload, JsonOptions, ct)

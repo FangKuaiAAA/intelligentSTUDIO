@@ -67,5 +67,9 @@ public partial class App : Application
 
         MainWindow = new MainWindow();
         MainWindow.Activate();
+
+        // 打开图乐园时若主进程没在跑就静默拉起（依赖它的本地服务）。
+        // ⚠ Office 那条无窗口路径在上面已 return，不走这里。
+        _ = MainProcessLauncher.EnsureRunningAsync();
     }
 }

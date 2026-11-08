@@ -648,8 +648,10 @@ public sealed partial class ReframePanel : UserControl, IEditorPanel
                         effectiveMask = await ImageCodec.EncodeMaskPngAsync(fullMask, apiWidth, apiHeight);
                     }
 
+                    // 重构要「改掉」遮罩区的内容，不能保留初始填充，否则等于没重绘
                     rebuilt = await PhotoServiceClient.Instance.MoebiusInpaintAsync(
-                        canvasPng, effectiveMask, 20, CancellationToken.None);
+                        canvasPng, effectiveMask, 20, outpaint: false,
+                        ct: CancellationToken.None);
                     engine = "内置";
                 }
 

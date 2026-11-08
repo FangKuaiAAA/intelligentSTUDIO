@@ -27,6 +27,9 @@ try {
 
     $prevEAP = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
+    # ⚠ 入口只有 launcher.py，其余服务靠 runpy.run_path 从 --add-data 的源码目录跑，
+    #   PyInstaller 对它们 0 静态分析 —— 所以 agent/tools 里 import 的第三方库必须在这里显式列出，
+    #   漏一个就是「功能静默失效」（pycaw 音量、openpyxl 表格、docx/pptx 文档都是这么漏的）。
     & $Py -m PyInstaller `
         --noconfirm --clean `
         --onedir --name intelligentstudio-backend `
@@ -45,16 +48,29 @@ try {
         --collect-all "pyaudio" `
         --collect-all "uiautomation" `
         --collect-all "comtypes" `
+        --collect-all "pycaw" `
         --collect-all "mss" `
+        --collect-all "docx" `
+        --collect-all "pptx" `
+        --collect-all "openpyxl" `
+        --collect-all "et_xmlfile" `
+        --collect-all "httpx" `
+        --collect-all "httpcore" `
+        --collect-all "wmi" `
         --hidden-import "win32com" `
         --hidden-import "win32com.client" `
         --hidden-import "win32com.propsys" `
+        --hidden-import "win32comext.propsys.propsys" `
         --hidden-import "win32clipboard" `
         --hidden-import "win32gui" `
         --hidden-import "win32api" `
         --hidden-import "win32con" `
         --hidden-import "win32process" `
         --hidden-import "win32ui" `
+        --hidden-import "win32file" `
+        --hidden-import "winioctlcon" `
+        --hidden-import "win32com.shell" `
+        --collect-all "win32comext" `
         --collect-all "winsdk" `
         --exclude-module "torch" `
         --exclude-module "torchgen" `

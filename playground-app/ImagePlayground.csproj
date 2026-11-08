@@ -17,6 +17,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>ImagePlayground</AssemblyName>
+    <Version>1.1.0</Version>
     <Company>方块AAA</Company>
     <Product>intelligentSTUDIO</Product>
     <Copyright>Copyright © 2026 方块AAA</Copyright>

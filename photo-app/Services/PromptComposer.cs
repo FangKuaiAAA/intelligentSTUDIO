@@ -17,8 +17,14 @@ public static class PromptComposer
     public static string Fallback(PromptTask task) => task switch
     {
         PromptTask.Outpaint =>
-            "the scene continues beyond the frame with the same materials, colours and lighting, "
-            + "matching camera perspective and scale, photorealistic",
+            // 扩展：把画面外侧那块模糊/空白区域**填充补全**，只延续已有背景。
+            // 不加限制时模型会在空白区脑补出新的主体（人物/动物/器物），
+            // 看起来像画面里凭空多了一坨东西。
+            "fill in the blank, blurred margins outside the original frame so they blend seamlessly "
+            + "with the photo; continue only the existing background — the same ground, water, "
+            + "foliage and sky, keeping materials, colours, lighting, perspective and scale consistent; "
+            + "do NOT add any new object, person, animal, vehicle or product; "
+            + "no text, no watermark, no vignette, photorealistic",
         PromptTask.Reconstruct =>
             "the surrounding floor and walls continue through the area with consistent materials, "
             + "aligned perspective and diffused daylight, photorealistic",

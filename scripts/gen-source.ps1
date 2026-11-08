@@ -1,13 +1,16 @@
 $src = 'D:\OpenCode\APPXInteligent'
 $staging = Join-Path $src 'build-src-staging'
-$final = Join-Path $src 'release\intelligentstudio-source-0.1.1.zip'
-$tmp = Join-Path $src 'release\intelligentstudio-source-0.1.1-new.zip'
+$final = Join-Path $src 'release\intelligentstudio-source-1.1.0.zip'
+$tmp = Join-Path $src 'release\intelligentstudio-source-1.1.0-new.zip'
 
 if (Test-Path $staging) { cmd /c "rmdir /s /q `"$staging`"" }
 New-Item -ItemType Directory -Path $staging -Force | Out-Null
 
 $excludeDirs = @(
     'node_modules', '.venv', '.venv-photo', 'models', 'dist', 'release',
+    # 打包时用过的一次性输出目录（electron-builder 的 output 曾换过几个名字），
+    # 不排掉会把几 GB 的已构建产物塞进源码包。
+    'release-out', 'release-final', 'release-build',
     'build-pyi', 'build-pyi-tmp', 'backend-dist', 'build-models-staging',
     'build-src-staging', 'logs', '.git', 'bin', 'obj',
     (Join-Path $src 'assets\office-cert'),

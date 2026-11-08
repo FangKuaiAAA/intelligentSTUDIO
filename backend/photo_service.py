@@ -66,6 +66,8 @@ class MoebiusRequest(BaseModel):
     image: str
     mask: str
     steps: int = 20
+    # 扩展场景：画布外围已用「边缘拉伸 + 轻微模糊」打好底，保留它作为模型的初始填充
+    outpaint: bool = False
 
 
 class ReframeRequest(BaseModel):
@@ -144,6 +146,7 @@ def moebius_inpaint(request: MoebiusRequest) -> dict:
             image,
             (mask > 0).astype(np.uint8) * 255,
             steps=max(4, min(40, int(request.steps))),
+            keep_masked=bool(request.outpaint),
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Moebius 修复失败：{exc}") from exc

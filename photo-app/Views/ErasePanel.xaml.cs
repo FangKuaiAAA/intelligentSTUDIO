@@ -464,8 +464,10 @@ public sealed partial class ErasePanel : UserControl, IEditorPanel
                     throw new InvalidOperationException("推理服务未就绪。请运行 run-photo-editor.bat 后重试。");
 
                 // 内置模型不需要提示词，直接按遮罩局部重绘
+                // 擦除必须 outpaint=false：遮罩区要清零，否则被擦掉的物体会被当成内容保留
                 repaired = await PhotoServiceClient.Instance.MoebiusInpaintAsync(
-                    imagePng, maskPng, 20, System.Threading.CancellationToken.None);
+                    imagePng, maskPng, 20, outpaint: false,
+                    ct: System.Threading.CancellationToken.None);
             }
 
             using var returned = await ImageCodec.DecodeAsync(repaired);

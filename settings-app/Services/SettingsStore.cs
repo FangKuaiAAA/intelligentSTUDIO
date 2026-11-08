@@ -58,6 +58,15 @@ public sealed class SettingsStore
 
     private static string? FindRepoRoot()
     {
+        // ⚠ 打包态（位于 <安装目录>\resources\<app>\）**绝不能**再向上找仓库根。
+        //   安装目录常常就落在仓库里（如 release-final\win-unpacked），一路向上会命中仓库根，
+        //   于是明明装的是打包版，却去跑开发版的 .venv\Scripts\python.exe + 源码服务
+        //   —— 用户实测「final 版启动设置会弹出开发版的几个服务窗口」正是这个。
+        //   打包态一律返回 null，改用 %APPDATA%\IntelligentStudio\config.json。
+        var baseDir = AppContext.BaseDirectory.Replace('\\', '/');
+        if (baseDir.Contains("/resources/", StringComparison.OrdinalIgnoreCase))
+            return null;
+
         // 从输出目录向上查找包含 package.json 与 backend 目录的仓库根（config.py 读取同一位置的 .appx_config.json）
         for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
         {
